@@ -5,7 +5,6 @@ import Ample.Tactic.Arithmetic
 open scoped Classical
 
 namespace Ample
-variable {A B C : Type} {m n : Nat}
 local infixr:90 (priority := high) " ∘ " => compose
 
 theorem zero_add_induction (n : Nat) : 0 + n = n := by

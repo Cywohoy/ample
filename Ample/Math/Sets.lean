@@ -279,8 +279,8 @@ example : twoThree ∩ positives = twoThree := by
   exact inter_eq_left_of_subset twoThree positives
     twoThree_subset_positives
 
-example
-    {A : Type} (S T U : Set A) :
+example {A : Type}
+     (S T U : Set A) :
     S ∩ (T ∪ U) = (S ∩ T) ∪ (S ∩ U) := by
 
   ext x
@@ -334,8 +334,8 @@ instance {A : Type} : Complement (Set A) where
 
 postfix:max "ᶜ" => Complement.complement
 
-example
-    {A : Type} (S : Set A) (x : A)
+example {A : Type}
+     (S : Set A) (x : A)
     (hx : x ∈ S)
     (hxc : x ∈ Sᶜ) :
     False := by
@@ -368,15 +368,15 @@ theorem compl_compl_subset {A : Type} (S : Set A) :
 
     contradiction
 
-example
-    {A : Type} (S : Set A) :
+example {A : Type}
+     (S : Set A) :
     Sᶜᶜ ⊆ S := by
   intro x hxScc
   apply Classical.not_not.mp
   exact hxScc
 
-example
-    {A : Type} (S : Set A) :
+example {A : Type}
+     (S : Set A) :
     Sᶜᶜ ⊆ S := by
   intro x hxScc
   by_contra hxNotS
@@ -394,8 +394,8 @@ section
 open scoped Ample.Auto
 open scoped Classical
 
-example
-    {A : Type} (S : Set A) :
+example {A : Type}
+     (S : Set A) :
     Sᶜᶜ ⊆ S := by
   intro x hxScc
   expand at hxScc

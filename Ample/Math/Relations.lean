@@ -4,7 +4,6 @@ import Ample.Math.Numbers
 open scoped Classical
 
 namespace Ample
-variable {A B C : Type} {m n : Nat}
 local infixr:90 (priority := high) " ∘ " => compose
 
 local notation:50 a " ≡ " b " [ZMOD " n "]" => Congruent n a b

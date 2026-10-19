@@ -5,7 +5,6 @@ import Ample.Tactic.Cardinality
 open scoped Classical
 
 namespace Ample
-variable {A B C : Type} {m n : Nat}
 local infixr:90 (priority := high) " ∘ " => compose
 
 def SameCardinality : Type → Type → Prop :=
@@ -16,14 +15,14 @@ theorem sameCardinality_refl (A : Type) :
   exists identity A
   exact identity_bijective A
 
-theorem sameCardinality_symm
+theorem sameCardinality_symm {A B : Type}
     (h : SameCardinality A B) :
     SameCardinality B A := by
   unpack h with ⟨f, hf⟩
   exists (inverseMap f hf)
   exact inverseMap_bijective f hf
 
-theorem sameCardinality_trans
+theorem sameCardinality_trans {A B C : Type}
     (hAB : SameCardinality A B)
     (hBC : SameCardinality B C) :
     SameCardinality A C := by
@@ -54,23 +53,23 @@ theorem cardinal_eq_iff (A B : Type) :
 
 attribute [ample_compare] cardinal_eq_iff
 
-example
+example {A B : Type}
     (f : A → B)
     (hf : Bijective f) :
     cardinal A = cardinal B := by
   ext
   exists f
 
-example
+example {A B : Type}
     (h : cardinal A = cardinal B) :
     ∃ f : A → B, Bijective f := by
   exact (cardinal_eq_iff A B).mp h
 
-theorem cardinal_eq_of_sameCardinality
+theorem cardinal_eq_of_sameCardinality {A B : Type}
     (h : SameCardinality A B) : cardinal A = cardinal B :=
   (cardinal_eq_iff A B).2 h
 
-theorem sameCardinality_of_cardinal_eq
+theorem sameCardinality_of_cardinal_eq {A B : Type}
     (h : cardinal A = cardinal B) : SameCardinality A B :=
   (cardinal_eq_iff A B).1 h
 
@@ -105,9 +104,9 @@ theorem empty_cardinal (A : Type) :
       x.property
     contradiction
 
-def singleton (a : A) : Set A := fun x => x = a
+def singleton {A : Type} (a : A) : Set A := fun x => x = a
 
-theorem singleton_cardinal (a : A) :
+theorem singleton_cardinal {A : Type} (a : A) :
     cardinal (Elem (singleton a)) = cardinal (Fin 1) := by
   symm
   ext
@@ -170,65 +169,66 @@ theorem threeNumbers_cardinal :
     dsimp [f, i]
     arith
 
-theorem cardinality_finite_transport
+theorem cardinality_finite_transport {A B : Type} {n : Nat}
     (hAB : cardinal A = cardinal B)
     (hA : cardinal A = cardinal (Fin n)) :
     cardinal B = cardinal (Fin n) := by
   rw [← hAB]
   exact hA
 
-example
+example {n : Nat}
     (i : Fin n) :
     (i : Nat) = i.val := by
   rfl
 
-def cardinality_fin_from_bound
+def cardinality_fin_from_bound {n : Nat}
     (x : Nat)
     (hx : x < n) :
     Fin n :=
   { val := x, isLt := hx }
 
-def cardinality_fin_embed_succ (i : Fin n) : Fin (n + 1) :=
+def cardinality_fin_embed_succ {n : Nat}
+    (i : Fin n) : Fin (n + 1) :=
   { val := i.val
     isLt := by
       have hi : i.val < n :=
         i.isLt
       arith }
 
-example
+example {n : Nat}
     (i : Fin n) :
     i.castSucc.val = i.val := by
   rfl
 
-example
+example {n : Nat}
     (i : Fin n) :
     i.succ.val = i.val + 1 := by
   rfl
 
-def cardinality_fin_castLE
+def cardinality_fin_castLE {m n : Nat}
     (i : Fin n)
     (h : n ≤ m) :
     Fin m := by
   exact i.castLE h
 
-example (i : Fin n)
+example {m n : Nat} (i : Fin n)
     (h : n ≤ m) :
     (i.castLE h).val = i.val := by
   rfl
 
-def cardinality_fin_castLT
+def cardinality_fin_castLT {n : Nat}
     (i : Fin (n + 1))
     (hi : i.val < n) :
     Fin n :=
   { val := i.val, isLt := hi }
 
-example
+example {n : Nat}
     (i : Fin (n + 1))
     (hi : i.val < n) :
     (i.castLT hi).val = i.val := by
   rfl
 
-def cardinality_fin_pred
+def cardinality_fin_pred {n : Nat}
     (i : Fin (n + 1))
     (hi : i.val ≠ n) :
     Fin n :=
@@ -238,7 +238,7 @@ def cardinality_fin_pred
         i.isLt
       arith }
 
-theorem cardinality_fin_eq_iff_values
+theorem cardinality_fin_eq_iff_values {n : Nat}
     (i j : Fin n) :
     i = j ↔ i.val = j.val := by
   constructor
@@ -249,7 +249,7 @@ theorem cardinality_fin_eq_iff_values
     ext
     exact h
 
-example
+example {n : Nat}
     (i : Fin n) (j : Fin (n + 1))
     (h : i.val = j.val) :
     i.castSucc = j := by
@@ -320,7 +320,8 @@ theorem eraseIndex_injective {r x y : Nat}
       rw [ite_eq_right hxr, ite_eq_right hyr] at h
       arith
 
-theorem fin_injection_remove (f : Fin (m + 1) → Fin (n + 1))
+theorem fin_injection_remove {m n : Nat}
+    (f : Fin (m + 1) → Fin (n + 1))
     (hf : Injective f) :
     ∃ g : Fin m → Fin n, Injective g := by
 
@@ -375,7 +376,7 @@ theorem fin_injection_remove (f : Fin (m + 1) → Fin (n + 1))
 
   exists g
 
-theorem fin_injective_le (f : Fin m → Fin n)
+theorem fin_injective_le {m n : Nat} (f : Fin m → Fin n)
     (hf : Injective f) :
     m ≤ n := by
 
@@ -419,7 +420,7 @@ theorem three_into_two_collision (f : Fin 3 → Fin 2) :
   exists i
   exists j
 
-theorem fin_sameCardinality_eq
+theorem fin_sameCardinality_eq {m n : Nat}
     (h : SameCardinality (Fin m) (Fin n)) :
     m = n := by
 
@@ -436,13 +437,13 @@ theorem fin_sameCardinality_eq
 
   arith
 
-theorem cardinal_fin_eq
+theorem cardinal_fin_eq {m n : Nat}
     (h : cardinal (Fin m) = cardinal (Fin n)) :
     m = n := by
   apply fin_sameCardinality_eq
   exact (cardinal_eq_iff _ _).mp h
 
-theorem finite_cardinal_unique
+theorem finite_cardinal_unique {A : Type} {m n : Nat}
     (hm : cardinal A = cardinal (Fin m))
     (hn : cardinal A = cardinal (Fin n)) :
     m = n := by
@@ -483,7 +484,7 @@ theorem cardinality_spec (A : Type)
     cardinal A = cardinality A hA := by
   exact (cardinalityData A hA).property
 
-theorem cardinality_eq
+theorem cardinality_eq {A : Type} {n : Nat}
     (hA : IsFinite A)
     (hn : cardinal A = n) :
     cardinality A hA = n := by
@@ -510,7 +511,7 @@ theorem no_injection_nat_fin (n : Nat) (f : Nat → Fin n) :
     fin_injective_le g hg
   arith
 
-theorem infinite_of_nat_injection (f : Nat → A)
+theorem infinite_of_nat_injection {A : Type} (f : Nat → A)
     (hf : Injective f) :
     IsInfinite A := by
   intro hA
@@ -560,12 +561,12 @@ theorem finProduct_bijective (m n : Nat) :
 
     · arith
 
-theorem isFinite_of_cardinal_eq
+theorem isFinite_of_cardinal_eq {A : Type} {n : Nat}
     (h : cardinal A = n) :
     IsFinite A := by
   exists n
 
-theorem isFinite_transport
+theorem isFinite_transport {A B : Type}
     (hAB : cardinal A = cardinal B)
     (hA : IsFinite A) :
     IsFinite B := by
@@ -574,7 +575,7 @@ theorem isFinite_transport
   rw [← hAB]
   exact hn
 
-theorem isInfinite_transport
+theorem isInfinite_transport {A B : Type}
     (hAB : cardinal A = cardinal B)
     (hA : IsInfinite A) :
     IsInfinite B := by
@@ -592,24 +593,24 @@ attribute [ample_card_rules]
   isFinite_of_cardinal_eq isFinite_transport isInfinite_transport
   nat_isInfinite
 
-example
+example {A B : Type} {n : Nat}
     (hAB : cardinal A = cardinal B)
     (hA : cardinal A = n) :
     cardinal B = n := by
   card
 
-example
+example {A B : Type}
     (hAB : SameCardinality A B) :
     cardinal A = cardinal B := by
   card
 
-example
+example {A B : Type}
     (hA : IsInfinite A)
     (hAB : cardinal A = cardinal B) :
     IsInfinite B := by
   card
 
-example
+example {A : Type} {n : Nat}
     (hA : IsFinite A)
     (hn : cardinal A = n) :
     cardinality A hA = n := by
@@ -620,7 +621,7 @@ example
     cardinal (Fin n) = n := by
   card
 
-example
+example {A : Type} {m n : Nat}
     (hm : cardinal A = m)
     (hn : cardinal A = n) :
     m = n := by
