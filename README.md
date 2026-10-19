@@ -66,13 +66,12 @@ path = "../Ample"
 Adjust `path` to point from your project to the Ample directory.
 A standalone consumer project is available in `Examples/Consumer/`.
 
-Once a remote repository and release tag are available, a project can instead
-pin a Git dependency (replace `OWNER` with the repository owner):
+A project can instead pin the published Git release:
 
 ```toml
 [[require]]
 name = "ample"
-git = "https://github.com/OWNER/ample.git"
+git = "https://github.com/Cywohoy/ample.git"
 rev = "v0.1.0"
 ```
 
