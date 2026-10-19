@@ -135,9 +135,10 @@ Domain-specific automation uses the definitions and rules imported for that doma
 
 ## Textbook integration
 
-Ample and the textbook are separate Git repositories.
-For local development, place their checkouts next to one another and let the
-textbook use `../Ample` as a path dependency. Its former tactic modules are thin import adapters.
+Ample and the [Korean textbook](https://github.com/Cywohoy/lean-algebra) are separate public Git repositories.
+The textbook's `main` branch is a standalone foundations book and pins an Ample release as a Git dependency.
+Its `full-book` branch preserves the complete algebra textbook and uses `../Ample` as a path dependency.
+For export development, place their checkouts next to one another. The textbook's former tactic modules are thin import adapters.
 The textbook presents definitions and complete proofs in teaching order; `Ample/Math/` exports the executable mathematical code without incomplete exercises.
 Korean proof annotations stay in the textbook and are omitted from the English library exports.
 Do not import a textbook module and its matching mathematical export together: both define the same `Ample` declarations.
@@ -150,7 +151,8 @@ python scripts/sync_ample.py --check
 ```
 
 The exporter belongs to the textbook repository. It accepts `--ample-root PATH`
-when the Ample checkout is elsewhere. Export synchronization requires Python;
+when the Ample checkout is elsewhere. The `main` branch exports only foundations modules;
+use `full-book` for group modules. Export synchronization requires Python;
 normal library builds and use do not require Python or the textbook directory.
 The generated mathematical files are committed in Ample so that every release
 is buildable on its own. Changes to their definitions or proofs should be made
