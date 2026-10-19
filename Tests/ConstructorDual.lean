@@ -1,6 +1,6 @@
 import Ample.Tactic.Rule
 
-open Course
+open Ample
 
 theorem constructor_forward (P Q : Prop) (hp : P) (hq : Q) : P ∧ Q := by
   constructor at hp hq with h

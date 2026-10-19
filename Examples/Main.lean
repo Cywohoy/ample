@@ -1,7 +1,7 @@
 import Ample
 
-open Course
-open scoped Course.Auto
+open Ample
+open scoped Ample.Auto
 
 theorem odd_double (n : Int) : 2 * n ≠ 5 := by
   arith

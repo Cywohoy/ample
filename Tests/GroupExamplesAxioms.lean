@@ -1,8 +1,8 @@
 import Ample.Math.GroupExamples
-#print axioms Course.inv_op
-#print axioms Course.integerPower_mul
-#print axioms Course.twoElementGroup
-#print axioms Course.productGroup
-#print axioms Course.permutationGroup
-#print axioms Course.permutationGroup_three_not_abelian
-#print axioms Course.permutation_square_op_failure
+#print axioms Ample.inv_op
+#print axioms Ample.integerPower_mul
+#print axioms Ample.twoElementGroup
+#print axioms Ample.productGroup
+#print axioms Ample.permutationGroup
+#print axioms Ample.permutationGroup_three_not_abelian
+#print axioms Ample.permutation_square_op_failure

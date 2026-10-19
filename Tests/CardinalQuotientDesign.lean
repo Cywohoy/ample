@@ -1,7 +1,7 @@
 import Ample.Math.Cardinality
 import Ample.Tactic.Auto
 
-open Course
+open Ample
 
 example (A B : Type) :
     cardinal A = cardinal B ↔ SameCardinality A B := by
@@ -10,7 +10,7 @@ example (A B : Type) :
 example : cardinal Nat = cardinal (Elem positives) := by
   ext : 1
   guard_target =ₛ SameCardinality Nat (Elem positives)
-  exact (cardinal_eq_iff _ _).mp Course.positives_countablyInfinite
+  exact (cardinal_eq_iff _ _).mp Ample.positives_countablyInfinite
 
 example (A B : Type) (h : SameCardinality A B) :
     cardinal A = cardinal B := by
@@ -56,7 +56,7 @@ example (a b : Int) (h : parityClass a = parityClass b) :
 
 section
 
-open scoped Course.Auto
+open scoped Ample.Auto
 
 example (A B : Type) (h : SameCardinality A B) :
     cardinal A = cardinal B := by

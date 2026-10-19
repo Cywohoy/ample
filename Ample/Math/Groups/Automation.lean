@@ -5,7 +5,7 @@ import Ample.Tactic.GroupRules
 
 open scoped Classical
 
-namespace Course
+namespace Ample
 variable {A : Type}
 
 example (G : Group A)
@@ -49,4 +49,4 @@ example (G : Group A)
 
   exact op_left_cancel G c a b h
 
-end Course
+end Ample

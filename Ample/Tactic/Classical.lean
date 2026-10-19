@@ -6,7 +6,7 @@ import Lean.Meta.Tactic.Apply
 open Lean Meta Elab Tactic
 open Lean.Parser.Tactic
 
-namespace Course.Automation
+namespace Ample.Automation
 
 -- A hidden context marker follows the subgoals of a classical proof step.
 -- It is an inhabited proposition, not an additional logical axiom.
@@ -23,7 +23,7 @@ def markClassicalGoal (goal : MVarId) : MetaM MVarId := goal.withContext do
       decl.type.isConstOf ``ClassicalNormalizationScope) then
     return goal
   let (_, next) ← goal.assertHypotheses #[{
-    userName := `_courseClassicalNormalization
+    userName := `_ampleClassicalNormalization
     type := mkConst ``ClassicalNormalizationScope
     value := mkConst ``ClassicalNormalizationScope.active
     kind := .implDetail
@@ -45,9 +45,9 @@ private def contradictionGoal (goal : MVarId) : MetaM MVarId := goal.withContext
     | throwTacticEx `by_contra goal "Unable to start a proof by contradiction"
   return next
 
-end Course.Automation
+end Ample.Automation
 
-namespace Course
+namespace Ample
 
 /-- `by_contra h` starts a proof by contradiction: for a goal `P`, it introduces `h : ¬ P` and changes the goal to `False`.
 For a negated goal `¬ P`, it instead introduces `h : P` with goal `False`.
@@ -63,7 +63,7 @@ def evalByContra : Tactic := fun stx => do
     let next ← Automation.contradictionGoal (← getMainGoal)
     replaceMainGoal [next]
     -- Do not normalize the intermediate ¬P → False back to P before introducing ¬P.
-    withOptions (fun options => options.setBool `course.autoNormalize false) do
+    withOptions (fun options => options.setBool `ample.autoNormalize false) do
       evalTactic (← `(tactic| rintro ($pat:rcasesPatMed) $[: $ty?]?))
     let mut next := []
     for goal in ← getUnsolvedGoals do
@@ -73,4 +73,4 @@ def evalByContra : Tactic := fun stx => do
     setGoals next
   | _ => throwUnsupportedSyntax
 
-end Course
+end Ample

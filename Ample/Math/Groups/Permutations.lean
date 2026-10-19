@@ -3,7 +3,7 @@ import Ample.Math.Groups.Products
 
 open scoped Classical
 
-namespace Course
+namespace Ample
 variable {A B : Type}
 
 def Permutation (A : Type) := { f : A → A // Bijective f }
@@ -169,4 +169,4 @@ theorem permutation_square_op_failure :
   have hBad : 2 = 0 := hValues
   contradiction
 
-end Course
+end Ample

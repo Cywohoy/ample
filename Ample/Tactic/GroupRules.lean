@@ -5,7 +5,7 @@ import Lean.LabelAttribute
 Group calculation rules, enabled after the basic group laws. Kept separate from arithmetic rules.
 -/
 
-namespace Course
+namespace Ample
 
 private theorem calc_assoc {A : Type} (G : Group A) (a b c : A) :
     G.op (G.op a b) c = G.op a (G.op b c) := G.assoc a b c
@@ -18,18 +18,18 @@ private theorem calc_inv_left {A : Type} (G : Group A) (a : A) :
 private theorem calc_inv_right {A : Type} (G : Group A) (a : A) :
     G.op a (G.inv a) = G.id := G.inv_right a
 
-attribute [course_group_rules] calc_assoc calc_id_left calc_id_right
+attribute [ample_group_rules] calc_assoc calc_id_left calc_id_right
   calc_inv_left calc_inv_right
 
-end Course
+end Ample
 
-attribute [course_group_rules]
-  Course.inv_id Course.inv_inv Course.inv_op
-  Course.solve_op_left Course.inv_op_cancel_left
-  Course.power_zero Course.power_one Course.power_succ
-  Course.power_add Course.power_mul Course.power_comm
-  Course.inv_power Course.power_op_of_comm
-  Course.integerPower_zero Course.integerPower_nat
-  Course.integerPower_negSucc Course.integerPower_add
-  Course.integerPower_neg Course.integerPower_sub
-  Course.integerPower_mul
+attribute [ample_group_rules]
+  Ample.inv_id Ample.inv_inv Ample.inv_op
+  Ample.solve_op_left Ample.inv_op_cancel_left
+  Ample.power_zero Ample.power_one Ample.power_succ
+  Ample.power_add Ample.power_mul Ample.power_comm
+  Ample.inv_power Ample.power_op_of_comm
+  Ample.integerPower_zero Ample.integerPower_nat
+  Ample.integerPower_negSucc Ample.integerPower_add
+  Ample.integerPower_neg Ample.integerPower_sub
+  Ample.integerPower_mul

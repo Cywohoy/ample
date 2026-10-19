@@ -9,7 +9,7 @@ Other constructors use Lean's native injection machinery.
 
 open Lean Meta Elab Tactic
 
-namespace Course.Automation
+namespace Ample.Automation
 
 inductive RetainedInjectionResult where
   | unchanged
@@ -76,7 +76,7 @@ def retainedInjection (goal : MVarId) (hyp : FVarId) (names : List Name := [])
   -- Give the native tactic a copy so that the original hypothesis is retained.
   let saved ← saveState
   try
-    let (copy, next) ← goal.note (← mkFreshUserName `__course_injection_copy) (mkFVar hyp)
+    let (copy, next) ← goal.note (← mkFreshUserName `__ample_injection_copy) (mkFVar hyp)
     match ← Meta.injection next copy names with
     | .solved => return .solved
     | .subgoal next eqs rest =>
@@ -117,19 +117,19 @@ def retainedInjections (goal : MVarId) (names : List Name := []) :
       queue := queue ++ eqs.map fun id => (id, depth + 1)
   return .subgoal current #[] remaining
 
-end Course.Automation
+end Ample.Automation
 
-namespace Course
+namespace Ample
 
 @[inherit_doc Lean.Parser.Tactic.injection]
-scoped syntax (name := courseInjection) (priority := high)
+scoped syntax (name := ampleInjection) (priority := high)
     "injection " term (" with" (ppSpace colGt (ident <|> hole))+)? : tactic
 
 @[inherit_doc Lean.Parser.Tactic.injections]
-scoped syntax (name := courseInjections) (priority := high)
+scoped syntax (name := ampleInjections) (priority := high)
     "injections" (ppSpace colGt (ident <|> hole))* : tactic
 
-@[tactic courseInjection]
+@[tactic ampleInjection]
 def evalRetainedInjection : Tactic := fun stx => withMainContext do
   let hyp ← elabAsFVar stx[1]
   let names := if stx[2].isNone then [] else stx[2][1].getArgs.toList.map getNameOfIdent'
@@ -141,7 +141,7 @@ def evalRetainedInjection : Tactic := fun stx => withMainContext do
     if ← goal.withContext goal.assumptionCore then replaceMainGoal []
     else replaceMainGoal [goal]
 
-@[tactic courseInjections]
+@[tactic ampleInjections]
 def evalRetainedInjections : Tactic := fun stx => do
   let names := stx[1].getArgs.toList.map getNameOfIdent'
   match ← Automation.retainedInjections (← getMainGoal) names with
@@ -152,4 +152,4 @@ def evalRetainedInjections : Tactic := fun stx => do
     if ← goal.withContext goal.assumptionCore then replaceMainGoal []
     else replaceMainGoal [goal]
 
-end Course
+end Ample

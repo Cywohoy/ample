@@ -7,7 +7,7 @@ import Ample.Tactic.Comparison
 
 open Lean Meta Elab Tactic
 
-namespace Course.Automation
+namespace Ample.Automation
 
 -- Construct the reflexive comparison without using the forward extensionality theorem.
 private partial def reflexiveComparison (type : Expr) : MetaM Expr := do
@@ -64,8 +64,8 @@ private def primitiveComparison? (type proof : Expr) : MetaM (Option (Expr × Ex
   if (← withDefault <| whnf α) == mkSort .zero then
     let result ← mkAppM ``Iff.of_eq #[proof]
     return some (result, mkApp2 (mkConst ``Iff) lhs rhs)
-  -- Keep the textbook's membership notation when a set is compared at an element.
-  if α.isAppOfArity `Course.Set 1 then
+  -- Keep membership notation when a set is compared at an element.
+  if α.isAppOfArity `Ample.Set 1 then
     return ← withLocalDeclD `x α.getAppArgs[0]! fun x => do
       let result ← mkAppM ``Iff.of_eq #[← mkAppM ``congrFun #[proof, x]]
       let left ← mkAppM ``Membership.mem #[lhs, x]
@@ -589,28 +589,28 @@ def normalizeComparisonGoal (goal : MVarId) : MetaM MVarId := goal.withContext d
   goal.replaceTargetDefEq (← computeComparison type)
 
 
-end Course.Automation
+end Ample.Automation
 
-namespace Course
+namespace Ample
 
 /-- `indiscern at h` is a compatibility spelling for extracting comparison facts from an equality.
 Use `indiscern x at h` to observe a function at `x`, and `with ...` to name the results.
 The current one-step spelling is `indisc at h`. -/
-scoped syntax (name := courseIndiscern) (priority := high)
+scoped syntax (name := ampleIndiscern) (priority := high)
   "indiscern" (ppSpace colGt term:max)* " at " ident
   (" with" (ppSpace colGt (ident <|> hole))+)? : tactic
 
 /-- `indiscern! at h` is a compatibility spelling for recursive extraction of comparison facts.
 It retains the source equality and intermediate comparisons. The current spelling is `indisc! at h`. -/
-scoped syntax (name := courseIndiscernRecursive) "indiscern!"
+scoped syntax (name := ampleIndiscernRecursive) "indiscern!"
   (ppSpace colGt term:max)* " at " (ident <|> "*") : tactic
 
 /-- `indiscern` is a compatibility spelling for replacing a comparison goal by a sufficient whole equality.
 The current one-step spelling is `indisc`. Supply the intended equality as an argument if it cannot be inferred. -/
-scoped syntax (name := courseIndiscernGoal) "indiscern" (ppSpace colGt term:max)? : tactic
+scoped syntax (name := ampleIndiscernGoal) "indiscern" (ppSpace colGt term:max)? : tactic
 
 
-@[tactic courseIndiscern]
+@[tactic ampleIndiscern]
 def evalIndiscern : Tactic := fun stx => do
   let saved ← saveState
   try
@@ -623,7 +623,7 @@ def evalIndiscern : Tactic := fun stx => do
     saved.restore
     throw e
 
-@[tactic courseIndiscernRecursive]
+@[tactic ampleIndiscernRecursive]
 def evalIndiscernRecursive : Tactic := fun stx => do
   let saved ← saveState
   try
@@ -638,7 +638,7 @@ def evalIndiscernRecursive : Tactic := fun stx => do
     saved.restore
     throw e
 
-@[tactic courseIndiscernGoal]
+@[tactic ampleIndiscernGoal]
 def evalIndiscernGoal : Tactic := fun stx => do
   let saved ← saveState
   try
@@ -648,7 +648,7 @@ def evalIndiscernGoal : Tactic := fun stx => do
   catch e => saved.restore; throw e
 
 
-open Course.Automation in
+open Ample.Automation in
 /-- `indisc at h` extracts one layer of comparison facts from an equality hypothesis.
 For example, an equality of pairs gives equalities of their components.
 Without `with`, the original hypothesis is replaced; `with` keeps it and names the new facts.
@@ -656,44 +656,44 @@ Without `with`, the original hypothesis is replaced; `with` keeps it and names t
 `indisc x at h` observes a function equality at `x`.
 Use `indisc : n at h` for a fixed depth or `indisc! at h` to repeat comparisons.
 `with first second` names the comparison facts in left-to-right order; names do not determine the depth. -/
-scoped syntax (name := courseIndiscAt) (priority := high)
+scoped syntax (name := ampleIndiscAt) (priority := high)
   "indisc" (ppSpace colGt term:max)* (" : " num)? " at " (ident <|> "*")
   (" with" (ppSpace colGt ruleOutput)+)? : tactic
-open Course.Automation in
+open Ample.Automation in
 /-- `indisc` replaces a comparison goal by a whole equality sufficient to establish it.
 For example, it can replace `p.1 = q.1` by the pair equality `p = q`.
 The default applies one rule. Use `indisc : n` for a fixed depth or `indisc!` to repeat.
 Use an explicit argument such as `indisc (p = q)` when the whole equality cannot be inferred. -/
-scoped syntax (name := courseIndiscGoal)
+scoped syntax (name := ampleIndiscGoal)
   "indisc" (ppSpace colGt term:max)? (" : " num)?
   (" with" (ppSpace colGt ruleOutput)+)? : tactic
-open Course.Automation in
+open Ample.Automation in
 /-- `indisc goals first second with combined` combines selected comparison goals into one whole equality.
 For example, goals `a = b` and `c = d` combine into `(a, c) = (b, d)`.
 Only independent goals in the same local context can be combined. An optional `: ...` specifies the whole equality. -/
-scoped syntax (name := courseIndiscGoals) (priority := high)
+scoped syntax (name := ampleIndiscGoals) (priority := high)
   "indisc" &"goals" (ppSpace colGt ident)+ (" with" (ppSpace colGt ruleOutput)+)?
   (" : " term)? : tactic
 /-- `indisc! at h` repeatedly extracts comparisons, retaining the source and intermediate facts.
 Use `indisc! at *` to process the current hypotheses, or `indisc at h` for one layer. -/
-scoped syntax (name := courseIndiscRecursive) "indisc!"
+scoped syntax (name := ampleIndiscRecursive) "indisc!"
   (ppSpace colGt term:max)* " at " (ident <|> "*") : tactic
 /-- `indisc!` repeatedly replaces a comparison goal by a sufficient whole equality.
 Use `indisc` to perform one step. -/
-scoped syntax (name := courseIndiscGoalRecursive)
+scoped syntax (name := ampleIndiscGoalRecursive)
   "indisc!" (ppSpace colGt term:max)? : tactic
-open Course.Automation in
+open Ample.Automation in
 /-- `ext at h1 h2 with h` derives a whole equality from comparison hypotheses.
 For example, `h1 : a = b` and `h2 : c = d` give `h : (a, c) = (b, d)`.
 Use `ext at h with whole : p = q` to specify the intended equality.
 
 The default uses one comparison layer; `ext : n at ...` selects a depth and `ext! at ...` repeats.
 Supplying `with` retains the original hypotheses. -/
-scoped syntax (name := courseExtAtMany) (priority := high)
+scoped syntax (name := ampleExtAtMany) (priority := high)
   "ext" (" : " num)? " at" (ppSpace colGt ident)+ (" with" (ppSpace colGt ruleOutput)+)?
   (" : " term)? : tactic
 
-@[tactic courseIndiscAt] def evalIndiscAt : Tactic := fun stx => Automation.runTransform do
+@[tactic ampleIndiscAt] def evalIndiscAt : Tactic := fun stx => Automation.runTransform do
   let saved ← saveState
   try
     withMainContext do
@@ -710,7 +710,7 @@ scoped syntax (name := courseExtAtMany) (priority := high)
         replaceMainGoal (← Automation.extractComparisonsRecursively (← getMainGoal) roots stx[1].getArgs depth patterns)
   catch e => saved.restore; throw e
 
-@[tactic courseIndiscGoal] def evalIndiscGoal : Tactic := fun stx => Automation.runTransform do
+@[tactic ampleIndiscGoal] def evalIndiscGoal : Tactic := fun stx => Automation.runTransform do
   let saved ← saveState
   try
     let target? := if stx[1].isNone then none else some stx[1][0]
@@ -732,7 +732,7 @@ scoped syntax (name := courseExtAtMany) (priority := high)
     replaceMainGoal (← Automation.nameRuleGoals next patterns)
   catch e => saved.restore; throw e
 
-@[tactic courseIndiscGoals] def evalIndiscGoals : Tactic := fun stx => do
+@[tactic ampleIndiscGoals] def evalIndiscGoals : Tactic := fun stx => do
   let saved ← saveState
   try
     let selected ← Automation.selectRuleGoals (stx[2].getArgs.map (·.getId))
@@ -742,7 +742,7 @@ scoped syntax (name := courseExtAtMany) (priority := high)
     Automation.combineComparisonGoals selected target? patterns
   catch e => saved.restore; throw e
 
-@[tactic courseIndiscRecursive] def evalIndiscRecursive : Tactic := fun stx => Automation.runTransform do
+@[tactic ampleIndiscRecursive] def evalIndiscRecursive : Tactic := fun stx => Automation.runTransform do
   let saved ← saveState
   try
     withMainContext do
@@ -752,7 +752,7 @@ scoped syntax (name := courseExtAtMany) (priority := high)
       replaceMainGoal (← Automation.extractComparisonsRecursively (← getMainGoal) roots stx[1].getArgs)
   catch e => saved.restore; throw e
 
-@[tactic courseIndiscGoalRecursive] def evalIndiscGoalRecursive : Tactic := fun stx => Automation.runTransform do
+@[tactic ampleIndiscGoalRecursive] def evalIndiscGoalRecursive : Tactic := fun stx => Automation.runTransform do
   let saved ← saveState
   try
     let target? := if stx[1].isNone then none else some stx[1][0]
@@ -764,7 +764,7 @@ scoped syntax (name := courseExtAtMany) (priority := high)
     replaceMainGoal next
   catch e => saved.restore; throw e
 
-@[tactic courseExtAtMany] def evalExtAtMany : Tactic := fun stx => Automation.runTransform do
+@[tactic ampleExtAtMany] def evalExtAtMany : Tactic := fun stx => Automation.runTransform do
   let saved ← saveState
   try
     withMainContext do
@@ -777,14 +777,14 @@ scoped syntax (name := courseExtAtMany) (priority := high)
   catch e => saved.restore; throw e
 
 
-open Course.Automation in
+open Ample.Automation in
 /-- `ext! at h1 h2 with whole` combines comparison hypotheses through multiple layers.
 Use `ext at ...` when the hypotheses are the immediate comparison conditions. -/
-scoped syntax (name := courseExtAtRecursive)
+scoped syntax (name := ampleExtAtRecursive)
   "ext!" " at" (ppSpace colGt ident)+ (" with" (ppSpace colGt ruleOutput)+)?
   (" : " term)? : tactic
 
-@[tactic courseExtAtRecursive] def evalExtAtRecursive : Tactic := fun stx => Automation.runTransform do
+@[tactic ampleExtAtRecursive] def evalExtAtRecursive : Tactic := fun stx => Automation.runTransform do
   let saved ← saveState
   try
     withMainContext do
@@ -804,4 +804,4 @@ scoped syntax (name := courseExtAtRecursive)
         replaceMainGoal (← Automation.assembleComparisonHypotheses (← getMainGoal) hyps target? patterns true)
   catch e => saved.restore; throw e
 
-end Course
+end Ample

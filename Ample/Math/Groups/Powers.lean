@@ -3,7 +3,7 @@ import Ample.Math.Groups.Calculations
 
 open scoped Classical
 
-namespace Course
+namespace Ample
 variable {A B : Type}
 
 def power (G : Group A) (a : A) : Nat → A
@@ -240,4 +240,4 @@ example :
     power twoElementGroup true 4 =
   false := by rfl
 
-end Course
+end Ample

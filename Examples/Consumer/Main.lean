@@ -1,6 +1,6 @@
 import Ample
 
-open Course
+open Ample
 
 theorem arithmetic_from_another_project (n : Nat) : n + 1 > n := by
   arith

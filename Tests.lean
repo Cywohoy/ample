@@ -27,6 +27,7 @@ import Tests.InjectionApplications
 import Tests.InverseMapApplication
 import Tests.LearningRoute
 import Tests.LibraryBoundary
+import Tests.ExpansionModules
 import Tests.MembershipNotation
 import Tests.QuotientExt
 import Tests.QuotientClasses

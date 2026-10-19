@@ -1,6 +1,6 @@
 import Ample.Math.Cardinality
 
-open Course
+open Ample
 
 namespace CardinalityArithmetic
 

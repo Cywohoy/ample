@@ -1,6 +1,6 @@
 import Ample.Tactic.Ext
 
-open Course
+open Ample
 
 theorem merge_pair (a b c d : Nat) (hab : a = b) (hcd : c = d) :
     (a, c) = (b, d) := by

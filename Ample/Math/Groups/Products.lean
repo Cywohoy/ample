@@ -3,7 +3,7 @@ import Ample.Math.Groups.Powers
 
 open scoped Classical
 
-namespace Course
+namespace Ample
 variable {A B : Type}
 
 def productGroup (G : Group A) (H : Group B) :
@@ -76,4 +76,4 @@ theorem product_first_surjective (H : Group B) :
   intro a
   exists (a, H.id)
 
-end Course
+end Ample

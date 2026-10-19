@@ -2,7 +2,7 @@ import Ample.Tactic.GroupRules
 import Ample.Tactic.Group
 import Ample.Tactic.Auto
 
-open Course
+open Ample
 
 section
 variable {A : Type} (G H : Group A)

@@ -8,12 +8,12 @@ not choose values for metavariables that existed before the check. -/
 
 open Lean Meta Elab Tactic
 
-register_option course.inAutoStep : Bool := {
+register_option ample.inAutoStep : Bool := {
   defValue := false
-  descr := "Internal: normalize selected transformation results in Course.Auto"
+  descr := "Internal: normalize selected transformation results in Ample.Auto"
 }
 
-namespace Course.Automation
+namespace Ample.Automation
 
 def closeReflexive (goal : MVarId) : MetaM Bool := do
   if ← goal.isAssigned then return true
@@ -44,7 +44,7 @@ def finishTransformGoals (goals : List MVarId) : TacticM (List MVarId) := do
   let mut remaining := []
   for goal in goals do
     unless ← goal.isAssigned do
-      let goal ← if course.inAutoStep.get (← getOptions) then
+      let goal ← if ample.inAutoStep.get (← getOptions) then
         -- Context construction for simp/dsimp reads the current tactic goal.
         -- A combined result is not in that list yet, and its old goals may
         -- already be assigned. Install only this result while normalizing it.
@@ -70,4 +70,4 @@ def runTransform (action : TacticM Unit) : TacticM Unit := do
     saved.restore
     throw error
 
-end Course.Automation
+end Ample.Automation

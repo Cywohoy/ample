@@ -4,7 +4,7 @@ import Ample.Math.FiniteCardinality
 
 open scoped Classical
 
-namespace Course
+namespace Ample
 variable {A B C : Type} {m n : Nat}
 local infixr:90 (priority := high) " ∘ " => compose
 
@@ -88,4 +88,4 @@ theorem twoElementGroup_order :
       (isFinite_of_cardinal_eq bool_cardinal) = 2 := by
   exact cardinality_eq _ bool_cardinal
 
-end Course
+end Ample

@@ -4,7 +4,7 @@ import Ample.Tactic.Cardinality
 
 open scoped Classical
 
-namespace Course
+namespace Ample
 variable {A B C : Type} {m n : Nat}
 local infixr:90 (priority := high) " ∘ " => compose
 
@@ -52,7 +52,7 @@ theorem cardinal_eq_iff (A B : Type) :
   exact classOf_eq_iff SameCardinality
     sameCardinality_equivalence A B
 
-attribute [course_compare] cardinal_eq_iff
+attribute [ample_compare] cardinal_eq_iff
 
 example
     (f : A → B)
@@ -582,7 +582,7 @@ theorem isInfinite_transport
   apply hA
   exact isFinite_transport hAB.symm hB
 
-attribute [course_card_rules]
+attribute [ample_card_rules]
   sameCardinality_refl sameCardinality_symm sameCardinality_trans
   cardinal_eq_of_sameCardinality sameCardinality_of_cardinal_eq
   Cardinal.eq_symm Cardinal.eq_trans
@@ -626,4 +626,4 @@ example
     m = n := by
   card
 
-end Course
+end Ample

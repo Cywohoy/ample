@@ -7,13 +7,13 @@ import Ample.Tactic.Auto
 2.3부터 2.6까지의 정의와 정리로 각 연습문제를 검증한다.
 -/
 
-open Course
-open scoped Course.Auto Classical
+open Ample
+open scoped Ample.Auto Classical
 
 -- These exercises precede group automation and the return to cardinality.
 open Lean Elab Command in
 run_cmd do
-  for name in [`Course.Cardinal, `Course.Relation, `Course.evalGroupCalc] do
+  for name in [`Ample.Cardinal, `Ample.Relation, `Ample.evalGroupCalc] do
     if (← getEnv).contains name then
       throwError "The group exercise route unexpectedly imports {name}."
 

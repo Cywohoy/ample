@@ -1,12 +1,12 @@
 import Ample.Math.Cardinality
 
-/-- info: fun q => q : Course.QuotientType Eq → Course.QuotientType Eq -/
+/-- info: fun q => q : Ample.QuotientType Eq → Ample.QuotientType Eq -/
 #guard_msgs in
-#check fun (q : Course.QuotientType (A := Nat) Eq) => q
+#check fun (q : Ample.QuotientType (A := Nat) Eq) => q
 
 -- The scoped notation can be enabled without opening mathematical names.
 section
-open scoped Course
+open scoped Ample
 
 /-- info: fun q => q : Nat / Eq → Nat / Eq -/
 #guard_msgs in
@@ -16,18 +16,18 @@ open scoped Course
 #guard_msgs in
 #check fun (q : Nat / Eq) => q = ⟦0⟧
 
-/-- info: fun q => q : Course.QuotientType Eq → Course.QuotientType Eq -/
+/-- info: fun q => q : Ample.QuotientType Eq → Ample.QuotientType Eq -/
 #guard_msgs in
 set_option pp.notation false in
 #check fun (q : Nat / Eq) => q
 
-example {A : Type} (R : Course.Relation A) :
-    (A / R) = Course.QuotientType R := rfl
+example {A : Type} (R : Ample.Relation A) :
+    (A / R) = Ample.QuotientType R := rfl
 example (m n : Nat) : m / n + 1 = Nat.div m n + 1 := rfl
 
 end
 
-open Course
+open Ample
 
 -- The left operand determines the carrier, including larger universes.
 example {A : Type u} (R : Relation A) :

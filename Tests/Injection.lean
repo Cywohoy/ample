@@ -8,7 +8,7 @@ example (a b c d : Nat) (h : (a, b) = (c, d)) : True := by
   fail_if_success guard_hyp h : (a, b) = (c, d)
   trivial
 
-open Course
+open Ample
 
 example (a b c d : Nat) (h : (a, b) = (c, d)) : True := by
   injection h with ha hb

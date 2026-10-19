@@ -1,6 +1,6 @@
 import Ample.Math.Functions
 
-open Course
+open Ample
 
 variable {A B : Type} {m n : Nat}
 

@@ -14,7 +14,7 @@ import Lean.Meta.Tactic.Cases
 
 open Lean Meta Elab Tactic
 
-namespace Course.Automation
+namespace Ample.Automation
 
 def wlogRule (goal : MVarId) (condition : Expr) (name : Name)
     (variables : Array FVarId) (reductionName : Name) :
@@ -37,17 +37,17 @@ def wlogRule (goal : MVarId) (condition : Expr) (name : Name)
   restricted.setTag (appendTag parent `restricted)
   return [← markClassicalGoal reduction, ← markClassicalGoal restricted]
 
-end Course.Automation
+end Ample.Automation
 
-namespace Course
+namespace Ample
 /-- `wlog h : P` reduces a proof to the case where condition `P` holds.
 First prove the `reduction` goal, which handles `¬ P` using the restricted result; then prove the `restricted` goal with `h : P`.
 `generalizing x y` selects variables available to the reduction, and `with reduced` names the restricted result. -/
-scoped syntax (name := courseWlog)
+scoped syntax (name := ampleWlog)
   "wlog " binderIdent " : " term
   (" generalizing" (ppSpace colGt ident)*)? (" with " ident)? : tactic
 
-@[tactic courseWlog] def evalCourseWlog : Tactic := fun stx => do
+@[tactic ampleWlog] def evalAmpleWlog : Tactic := fun stx => do
   let saved ← saveState
   try
     withMainContext do
@@ -63,5 +63,5 @@ scoped syntax (name := courseWlog)
       replaceMainGoal (← Automation.wlogRule (← getMainGoal) condition name variables reductionName)
   catch e => saved.restore; throw e
 
-end Course
+end Ample
 

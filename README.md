@@ -12,8 +12,8 @@ is archived separately and is not part of this package.
 ```lean
 import Ample
 
-open Course
-open scoped Course.Auto
+open Ample
+open scoped Ample.Auto
 
 theorem double_is_not_five (n : Int) : 2 * n ≠ 5 := by
   arith
@@ -23,18 +23,24 @@ theorem group_inverse {A : Type} (G : Group A) (a : A) :
   group_calc G
 ```
 
-The public namespaces remain `Course`, `Course.Auto`, and `course_*` to preserve existing imports and proofs.
-Opening `Course` makes the mathematical names and scoped tactics available.
-`open scoped Course.Auto` enables presentation normalization before and after proof steps.
+Public mathematical declarations and tactics use the `Ample` namespace.
+Normalization uses `Ample.Auto`, and rule attributes use the `ample_*` prefix.
+Version 0.2 changes the namespace used by earlier releases: use `open Ample`,
+`open scoped Ample.Auto`, and trace options such as `trace.Ample.arith`.
+Legacy textbook naming is supported by the textbook's adapter, not by this package.
+Opening `Ample` makes the mathematical names and scoped tactics available.
+`open scoped Ample.Auto` enables presentation normalization before and after proof steps.
 Use `open scoped Classical` in scopes that should use classical logic by default.
 
 `ext` and `indisc` apply one comparison layer by default, in goals and hypotheses.
 Use `ext!` and `indisc!` to repeat comparisons, or specify a depth with `ext : 2` or `indisc : 2 at h`.
 The depth notation for congruence is likewise `congr : 2`.
 One registered mathematical comparison counts as one layer: for sets, `set_ext` compares membership conditions up to logical equivalence.
-Iff theorems registered with `course_compare` connect equalities and their comparison conditions in both directions.
+Iff theorems registered with `ample_compare` connect equalities and their comparison conditions in both directions.
 Matching does not choose representatives or assign unresolved inputs of an existing goal.
 `expand` unfolds one layer of definitions; `expand!` repeats unfolding.
+Definitions from `Ample.Math` and the current file are eligible automatically.
+Use `register_expand_module MyProject.Math` to opt another module and its submodules into expansion.
 Compatibility spellings such as `ext1` and `congr 2` remain available.
 
 Transformations apply a restricted reflexivity check to the results of the current step.
@@ -72,7 +78,7 @@ A project can instead pin the published Git release:
 [[require]]
 name = "ample"
 git = "https://github.com/Cywohoy/ample.git"
-rev = "v0.1.0"
+rev = "v0.2.0"
 ```
 
 Use the same `lean-toolchain` as Ample, then run `lake update ample` and `lake build`.
@@ -98,7 +104,7 @@ is a separate process; see its [inclusion criteria](https://reservoir.lean-lang.
 
 Importing `Ample.Tactic` does not import the mathematical library.
 `quotientSet R` is the set of equivalence classes, and `QuotientType R` is `Elem (quotientSet R)`.
-With `open Course` or `open scoped Course`, write this type as `A / R`, where `R : Relation A`.
+With `open Ample` or `open scoped Ample`, write this type as `A / R`, where `R : Relation A`.
 The notation uses the same precedence and left associativity as ordinary division;
 for example, `A / R → B` is a function from the quotient to `B`.
 Write a quotient element as `⟦a⟧` when its quotient type can be inferred,
@@ -134,7 +140,7 @@ For local development, place their checkouts next to one another and let the
 textbook use `../Ample` as a path dependency. Its former tactic modules are thin import adapters.
 The textbook presents definitions and complete proofs in teaching order; `Ample/Math/` exports the executable mathematical code without incomplete exercises.
 Korean proof annotations stay in the textbook and are omitted from the English library exports.
-Do not import a textbook module and its matching mathematical export together: both define the same `Course` declarations.
+Do not import a textbook module and its matching mathematical export together: both define the same `Ample` declarations.
 
 After editing the mathematical code in the textbook, run these commands from the textbook root:
 

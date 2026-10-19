@@ -3,7 +3,7 @@ import Ample.Math.Numbers
 
 open scoped Classical
 
-namespace Course
+namespace Ample
 variable {A B C : Type} {m n : Nat}
 local infixr:90 (priority := high) " ∘ " => compose
 
@@ -104,7 +104,7 @@ def Notation.delabQuotientType : Delab :=
     let relation ← withNaryArg 1 delab
     return ⟨mkNode ``quotientTypeNotation #[carrier.raw, mkAtom "/", relation.raw]⟩
 
-attribute [scoped delab app.Course.QuotientType] Notation.delabQuotientType
+attribute [scoped delab app.Ample.QuotientType] Notation.delabQuotientType
 
 def classOf {A : Type _} (R : Relation A) (a : A) :
     A / R :=
@@ -121,7 +121,7 @@ def Notation.delabClassOf : Delab :=
     let value ← withNaryArg 2 delab
     return ⟨mkNode ``classOfNotation #[mkAtom "⟦", value.raw, mkAtom "⟧"]⟩
 
-attribute [scoped delab app.Course.classOf] Notation.delabClassOf
+attribute [scoped delab app.Ample.classOf] Notation.delabClassOf
 
 theorem classOf_eq_iff {A : Type _} (R : Relation A)
     (hR : IsEquivalence R)
@@ -151,7 +151,7 @@ theorem parityClass_eq_iff (a b : Int) :
   exact classOf_eq_iff (Congruent 2)
     (congruent_equivalence 2) a b
 
-attribute [course_compare] parityClass_eq_iff
+attribute [ample_compare] parityClass_eq_iff
 
 theorem parityClass_zero_two :
     parityClass 0 = parityClass 2 := by
@@ -280,4 +280,4 @@ theorem quotientLift_unique {A B : Type _}
   unpack quotient_exists_classOf R q with ⟨a, ha⟩
   rw [ha, hF a, hG a]
 
-end Course
+end Ample

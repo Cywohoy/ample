@@ -3,8 +3,8 @@ import Ample.Math.Functions
 
 /-! 원소 표기의 자동 정리, 전술의 범위와 기본 옵션 전달을 검사한다. -/
 
--- Course를 열지 않은 곳에서는 Lean의 기본 전술을 유지한다.
-example (x : Nat) : Course.Elem (fun n : Nat => 2 ≤ n) := by
+-- Ample를 열지 않은 곳에서는 Lean의 기본 전술을 유지한다.
+example (x : Nat) : Ample.Elem (fun n : Nat => 2 ≤ n) := by
   exists (x + 2)
   fail_if_success omega
   dsimp
@@ -12,7 +12,7 @@ example (x : Nat) : Course.Elem (fun n : Nat => 2 ≤ n) := by
 
 namespace ArithmeticTests
 
-open Course
+open Ample
 
 example (x : Nat) : Elem (fun n : Nat => 2 ≤ n) := by
   exists (x + 2)
@@ -54,7 +54,7 @@ example (x : Int) : 2 * x ≠ 5 := by
 end ArithmeticTests
 
 -- scoped 전술은 위 namespace를 닫으면 비활성화된다.
-example (x : Nat) : Course.Elem (fun n : Nat => 2 ≤ n) := by
+example (x : Nat) : Ample.Elem (fun n : Nat => 2 ≤ n) := by
   exists (x + 2)
   fail_if_success omega
   dsimp

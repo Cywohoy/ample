@@ -3,7 +3,7 @@ import Ample.Math.Groups.Definition
 
 open scoped Classical
 
-namespace Course
+namespace Ample
 variable {A B : Type}
 
 theorem inv_id (G : Group A) : G.inv G.id = G.id := by
@@ -60,4 +60,4 @@ theorem inv_op_cancel_left (G : Group A) (a b : A) :
         G.op (G.op (G.inv a) a) b := by rw [G.assoc]
     _ = b := by rw [G.inv_left, G.id_left]
 
-end Course
+end Ample

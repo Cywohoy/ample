@@ -2,7 +2,7 @@ import Lean
 
 open Lean PrettyPrinter Delaborator SubExpr
 
-namespace Course.Notation
+namespace Ample.Notation
 
 /-- Prefer the existing non-membership notation when printing a negated membership.
 This changes syntax for display only; it never unfolds a set or changes an expression. -/
@@ -16,4 +16,4 @@ def delabNotMembership : Delab :=
     let s ← withNaryArg 3 delab
     `($x ∉ $s)
 
-end Course.Notation
+end Ample.Notation

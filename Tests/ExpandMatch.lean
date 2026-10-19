@@ -1,6 +1,6 @@
 import Ample.Math.Preliminaries
 
-open Course
+open Ample
 
 example {A B : Type} {m n : Nat}
     (fA : Fin m → A) (fB : Fin n → B)

@@ -6,13 +6,13 @@ Matching does not select representatives or invent unresolved arguments. -/
 
 open Lean Meta
 
-namespace Course.Automation
+namespace Ample.Automation
 
 /-- Match the equality side of a registered comparison iff without leaving unresolved arguments. -/
 def registeredComparison? (equality : Expr) : MetaM (Option (Expr × Expr)) := do
   unless equality.consumeMData.eq?.isSome do return none
   if equality.hasExprMVar then return none
-  for name in ← labelled `course_compare do
+  for name in ← labelled `ample_compare do
     let saved ← saveState
     try
       let constant ← mkConstWithFreshMVarLevels name
@@ -34,4 +34,4 @@ def registeredComparisonStep? (goal : MVarId) : MetaM (Option (List MVarId)) :=
     | return none
   return some (← goal.apply (← mkAppM ``Iff.mpr #[lemma]))
 
-end Course.Automation
+end Ample.Automation

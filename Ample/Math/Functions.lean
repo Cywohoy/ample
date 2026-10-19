@@ -3,7 +3,7 @@ import Ample.Math.Sets
 
 open scoped Classical
 
-namespace Course
+namespace Ample
 
 variable {A B C D : Type}
 
@@ -210,7 +210,7 @@ example :
     apply elem_ext
     exact h
 
-attribute [course_norm_hyp] elem_eq_iff
+attribute [ample_norm_hyp] elem_eq_iff
 
 example
     (S : Set A) (s t : Elem S)
@@ -565,4 +565,4 @@ theorem inverseMap_bijective (f : A → B)
     exists (f x)
     exact inverseMap_left f hf x
 
-end Course
+end Ample

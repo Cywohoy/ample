@@ -1,6 +1,6 @@
 import Ample.Math.Preliminaries
 
-open Course
+open Ample
 
 -- 새로 펼칠 정의가 없어도 직접 만든 원소의 성분은 계산한다.
 example (n k : Nat) (hk : k < n) :

@@ -16,7 +16,7 @@ import Ample.Tactic.Classical
 
 open Lean Meta Elab Tactic
 
-namespace Course.Automation
+namespace Ample.Automation
 
 /-- A pattern names a rule output, or explicitly opens one grouped output. -/
 inductive RulePattern where
@@ -626,10 +626,10 @@ def introRuleAt (goal : MVarId) (input : FVarId) (patterns : Array RulePattern)
   let proof ← instantiateMVars result
   noteRuleOutputs goal #[{proof, type}] patterns `h
 
-end Course.Automation
+end Ample.Automation
 
-namespace Course
-open Course.Automation
+namespace Ample
+open Ample.Automation
 
 /-- `apply rule at hp with hq` applies `rule` to a hypothesis `hp` and records the result as `hq`.
 For example, `rule : P → Q` and `hp : P` give `hq : Q`.
@@ -979,5 +979,5 @@ scoped syntax (name := ruleApplyGoalType) (priority := high)
       replaceMainGoal (← nameRuleGoals obligations patterns)
   catch e => saved.restore; throw e
 
-end Course
+end Ample
 

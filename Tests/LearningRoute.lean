@@ -1,9 +1,9 @@
 import Ample.Math.Groups.Automation
 
-open Course Lean Elab Command
+open Ample Lean Elab Command
 
 run_cmd do
-  for name in [`Course.Cardinal, `Course.Relation, `Course.IsCountablyInfinite] do
+  for name in [`Ample.Cardinal, `Ample.Relation, `Ample.IsCountablyInfinite] do
     if (← getEnv).contains name then
       throwError "The early group route unexpectedly imports {name}."
 

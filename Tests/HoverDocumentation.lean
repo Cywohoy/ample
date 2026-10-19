@@ -8,7 +8,7 @@ run_elab do
   let env ← getEnv
   let mut checked : Nat := 0
   for (name, info) in env.constants.toList do
-    unless name.getPrefix == `Course && info.type.isConstOf ``ParserDescr do
+    unless name.getPrefix == `Ample && info.type.isConstOf ``ParserDescr do
       continue
     checked := checked + 1
     let some doc ← findDocString? env name

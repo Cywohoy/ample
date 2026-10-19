@@ -1,7 +1,7 @@
 import Ample.Math.Functions
 import Ample.Tactic.Auto
 
-open Course
+open Ample
 
 -- 단사성으로 얻은 원소의 등식을 값 비교에도 사용할 수 있다.
 example {A B : Type} {m n : Nat}
@@ -19,7 +19,7 @@ example {A B : Type} {m n : Nat}
 
 namespace WithAuto
 
-open scoped Course.Auto
+open scoped Ample.Auto
 
 example {A B : Type} {m n : Nat}
     (fA : Fin m → A) (fB : Fin n → B)
@@ -42,7 +42,7 @@ example (n a b : Nat) (ha : a < n) (hb : b < n)
   have hVal : a = b := by assumption
   run_tac
     let before := (← Lean.getLCtx).getFVarIds.size
-    Course.Automation.normalizeGoals
+    Ample.Automation.normalizeGoals
     let after := (← Lean.getLCtx).getFVarIds.size
     unless before == after do throwError "Repeated normalization added duplicate facts."
   trivial

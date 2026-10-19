@@ -11,7 +11,7 @@ Depth and attempt limits prevent repeated exploration of the same goal.
 
 open Lean Meta Elab Tactic
 
-namespace Course.Automation
+namespace Ample.Automation
 
 -- This derived cache is local to each elaboration branch; it registers no new rules.
 initialize arithmeticRuleIndex : EnvExtension (Array Name × DiscrTree Name) ←
@@ -44,12 +44,12 @@ private def addFinBounds (goal : MVarId) : TacticM MVarId := goal.withContext do
       return true
   let mut current := goal
   for proof in ← bounds.get do
-    let (_, next) ← current.note (← mkFreshUserName `__course_bound) proof
+    let (_, next) ← current.note (← mkFreshUserName `__ample_bound) proof
     current := next
   return current
 
 private def makeRuleIndex : MetaM (DiscrTree Name) := do
-  let names ← labelled `course_arith_apply
+  let names ← labelled `ample_arith_apply
   let (cachedNames, cachedIndex) := arithmeticRuleIndex.getState (← getEnv)
   if names == cachedNames then return cachedIndex
   let mut index : DiscrTree Name := {}
@@ -70,7 +70,7 @@ private def closeUsing (goal : MVarId) (tactic : Syntax) : TacticM Bool := do
 
 -- Keep logical introductions and outer comparisons as explicit proof steps.
 private def closeByCalculation (goal : MVarId) : TacticM Bool := do
-  let simpRules := mkIdent `course_arith_simp
+  let simpRules := mkIdent `ample_arith_simp
   closeUsing goal (← `(tactic| solve
     | omega
     | (simp (disch := omega) only [$simpRules:ident] at *; all_goals omega)))
@@ -112,4 +112,4 @@ def searchArithmetic (goal : MVarId) : TacticM Bool := do
   saved.restore
   return false
 
-end Course.Automation
+end Ample.Automation

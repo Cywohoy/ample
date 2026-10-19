@@ -11,7 +11,7 @@ import Ample.Tactic.Step
 
 open Lean Meta Elab Tactic
 
-namespace Course.Automation
+namespace Ample.Automation
 
 -- Expose the relation stored in a concrete Setoid, keeping its mathematical name.
 private def exposeQuotientRelation (goal : MVarId) : MetaM MVarId := goal.withContext do
@@ -65,12 +65,12 @@ private partial def compareEquality (goal : MVarId)
       results := results.push (subgoal, remaining)
   return (totalUsed, results)
 
-end Course.Automation
+end Ample.Automation
 
-namespace Course
+namespace Ample
 
 @[scoped tactic Lean.Elab.Tactic.Ext.applyExtTheorem]
-def evalCourseApplyExtTheorem : Tactic := fun _ => do
+def evalAmpleApplyExtTheorem : Tactic := fun _ => do
   let goal ← getMainGoal
   if let some next ← Automation.registeredComparisonStep? goal then
     replaceMainGoal next
@@ -83,11 +83,11 @@ def evalCourseApplyExtTheorem : Tactic := fun _ => do
 For example, pairs produce component equalities and sets produce membership equivalences.
 Use `ext x` to name an arbitrary function argument or set element.
 Use `ext : n` for a fixed depth, or `ext!` to repeat comparisons. -/
-scoped syntax (name := courseExt) (priority := high)
+scoped syntax (name := ampleExt) (priority := high)
   "ext" (colGt ppSpace rintroPat)* (" : " num)? : tactic
 
-@[tactic courseExt, scoped tactic Lean.Elab.Tactic.Ext.ext, no_fallback]
-def evalCourseExt : Tactic := fun stx => Automation.runTransform do
+@[tactic ampleExt, scoped tactic Lean.Elab.Tactic.Ext.ext, no_fallback]
+def evalAmpleExt : Tactic := fun stx => Automation.runTransform do
   let pats := RCases.expandRIntroPats (stx[1].getArgs.map (fun p => (⟨p⟩ : TSyntax `rintroPat)))
   let depth := if stx[2].isNone then 1 else (⟨stx[2][1]⟩ : TSyntax `num).getNat
   let (used, goals) ← Automation.compareEquality (← getMainGoal) pats.toList depth true
@@ -99,24 +99,24 @@ def evalCourseExt : Tactic := fun stx => Automation.runTransform do
   replaceMainGoal (← goals.toList.mapM fun g => Automation.normalizeComparisonGoal g.1)
 
 
-open Course.Automation in
+open Ample.Automation in
 /-- `ext with first second` reduces an equality to its comparison conditions and names the resulting goals.
 The default applies one comparison rule. Use `ext : n` for a fixed depth or `ext!` to repeat.
 Select a named goal with `case first => ...`.
 
 For example, an equality of pairs produces equalities of their components.
 For functions, `ext x with value` introduces an arbitrary argument `x`. -/
-scoped syntax (name := courseExtNamed) (priority := high)
+scoped syntax (name := ampleExtNamed) (priority := high)
   "ext" (colGt ppSpace rintroPat)* (" : " num)?
   " with" (ppSpace colGt ruleOutput)+ : tactic
-open Course.Automation in
+open Ample.Automation in
 /-- `ext!` repeats mathematical comparisons, optionally naming the resulting goals with `with`.
 Use `ext` to apply just one comparison rule. -/
-scoped syntax (name := courseExtRecursive)
+scoped syntax (name := ampleExtRecursive)
   "ext!" (colGt ppSpace rintroPat)* (" with" (ppSpace colGt ruleOutput)+)?
   (" : " num)? : tactic
 
-@[tactic courseExtNamed] def evalCourseExtNamed : Tactic := fun stx => Automation.runTransform do
+@[tactic ampleExtNamed] def evalAmpleExtNamed : Tactic := fun stx => Automation.runTransform do
   let saved ← saveState
   try
     let binders := RCases.expandRIntroPats (stx[1].getArgs.map (fun p => (⟨p⟩ : TSyntax `rintroPat)))
@@ -126,7 +126,7 @@ scoped syntax (name := courseExtRecursive)
     replaceMainGoal (← Automation.nameRuleGoals (← next.toList.mapM fun g => Automation.normalizeComparisonGoal g.1) patterns)
   catch e => saved.restore; throw e
 
-@[tactic courseExtRecursive] def evalCourseExtRecursive : Tactic := fun stx => Automation.runTransform do
+@[tactic ampleExtRecursive] def evalAmpleExtRecursive : Tactic := fun stx => Automation.runTransform do
   let saved ← saveState
   try
     let binders := RCases.expandRIntroPats (stx[1].getArgs.map (fun p => (⟨p⟩ : TSyntax `rintroPat)))
@@ -137,4 +137,4 @@ scoped syntax (name := courseExtRecursive)
     replaceMainGoal (← Automation.nameRuleGoals (← next.toList.mapM fun g => Automation.normalizeComparisonGoal g.1) patterns)
   catch e => saved.restore; throw e
 
-end Course
+end Ample

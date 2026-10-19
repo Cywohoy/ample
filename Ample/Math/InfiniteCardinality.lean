@@ -3,7 +3,7 @@ import Ample.Math.FiniteCardinality
 
 open scoped Classical
 
-namespace Course
+namespace Ample
 variable {A B C : Type} {m n : Nat}
 local infixr:90 (priority := high) " ∘ " => compose
 
@@ -424,7 +424,7 @@ theorem nat_powerSet_not_countablyInfinite :
     ¬ IsCountablyInfinite (Set Nat) := by
   exact cardinal_ne_powerSet Nat
 
-attribute [course_card_rules]
+attribute [ample_card_rules]
   Cardinal.le_refl Cardinal.le_trans Cardinal.le_of_eq
   countablyInfinite_isInfinite positives_countablyInfinite
   cardinal_le_powerSet cardinal_ne_powerSet cardinal_lt_powerSet
@@ -435,4 +435,4 @@ theorem infinite_card_comparison
     cardinal A ≤ cardinal C := by
   card
 
-end Course
+end Ample

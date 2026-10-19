@@ -1,6 +1,6 @@
 import Ample.Tactic.Arithmetic
 
-open Course
+open Ample
 
 -- 자연수와 정수에서 연산 전후의 나머지를 비교한다.
 

@@ -3,11 +3,11 @@ import Lean.Util.Trace
 
 open Lean Meta Elab Tactic
 
-initialize registerTraceClass `Course.arith
-initialize registerTraceClass `Course.card
-initialize registerTraceClass `Course.group
+initialize registerTraceClass `Ample.arith
+initialize registerTraceClass `Ample.card
+initialize registerTraceClass `Ample.group
 
-namespace Course.Automation
+namespace Ample.Automation
 
 private partial def inspectProof (category : Name) (rules : Array Name)
     (locals : Array FVarId) (used : IO.Ref (Array Name))
@@ -17,11 +17,11 @@ private partial def inspectProof (category : Name) (rules : Array Name)
       used.modify (·.push name)
       let publicName := (privateToUserName? name).getD name
       let displayName := match publicName with
-        | `Course.calc_assoc => `Course.Group.assoc
-        | `Course.calc_id_left => `Course.Group.id_left
-        | `Course.calc_id_right => `Course.Group.id_right
-        | `Course.calc_inv_left => `Course.Group.inv_left
-        | `Course.calc_inv_right => `Course.Group.inv_right
+        | `Ample.calc_assoc => `Ample.Group.assoc
+        | `Ample.calc_id_left => `Ample.Group.id_left
+        | `Ample.calc_id_right => `Ample.Group.id_right
+        | `Ample.calc_inv_left => `Ample.Group.inv_left
+        | `Ample.calc_inv_right => `Ample.Group.inv_right
         | other => other
       addTrace category m!"Rule: {displayName}"
       let mut count := 0
@@ -65,4 +65,4 @@ def traceCompletedProof (category : Name) (goal : MVarId)
       let decl ← id.getDecl
       addTrace category m!"Hypothesis: {decl.userName} : {decl.type}"
 
-end Course.Automation
+end Ample.Automation

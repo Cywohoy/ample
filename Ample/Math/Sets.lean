@@ -7,7 +7,7 @@ import Ample.Tactic.Ext
 import Ample.Tactic.Rules
 import Ample.Tactic.Unfold
 
-namespace Course
+namespace Ample
 
 def Set (A : Type _) := A → Prop
 
@@ -27,7 +27,7 @@ example : 3 ∈ positives := by
 @[simp] theorem mem_def {A : Type} (S : Set A) (x : A) :
     (x ∈ S) = S x := rfl
 
-attribute [course_arith_simp] mem_def positives positive
+attribute [ample_arith_simp] mem_def positives positive
 
 example
     (n : Nat)
@@ -68,7 +68,7 @@ instance {A : Type} : EmptyCollection (Set A) where
 def Subset {A : Type} : Set A → Set A → Prop :=
   fun S T => ∀ x, x ∈ S → x ∈ T
 instance {A : Type} : HasSubset (Set A) where
-  Subset := Course.Subset
+  Subset := Ample.Subset
 
 theorem subset_refl {A : Type} (S : Set A) :
     S ⊆ S := by
@@ -197,7 +197,7 @@ example {A : Type} (S T : Set A)
 def inter {A : Type} (S T : Set A) : Set A :=
   fun x => x ∈ S ∧ x ∈ T
 instance {A : Type} : Inter (Set A) where
-  inter := Course.inter
+  inter := Ample.inter
 
 theorem inter_subset_left {A : Type} (S T : Set A) :
     S ∩ T ⊆ S := by
@@ -240,7 +240,7 @@ theorem inter_eq_left_of_subset {A : Type} (S T : Set A)
 def union {A : Type} (S T : Set A) : Set A :=
   fun x => x ∈ S ∨ x ∈ T
 instance {A : Type} : Union (Set A) where
-  union := Course.union
+  union := Ample.union
 
 theorem subset_union_left {A : Type} (S T : Set A) :
     S ⊆ S ∪ T := by
@@ -330,7 +330,7 @@ example
 def compl {A : Type} (S : Set A) : Set A :=
   fun x => x ∉ S
 instance {A : Type} : Complement (Set A) where
-  complement := Course.compl
+  complement := Ample.compl
 
 postfix:max "ᶜ" => Complement.complement
 
@@ -391,7 +391,7 @@ theorem compl_compl_eq {A : Type} (S : Set A) :
 open scoped Classical
 
 section
-open scoped Course.Auto
+open scoped Ample.Auto
 open scoped Classical
 
 example
@@ -407,7 +407,7 @@ end
 def diff {A : Type} (S T : Set A) : Set A :=
   fun x => x ∈ S ∧ x ∉ T
 instance {A : Type} : SDiff (Set A) where
-  sdiff := Course.diff
+  sdiff := Ample.diff
 
 theorem diff_eq_inter_compl {A : Type} (S T : Set A) :
     S \ T = S ∩ Tᶜ := by
@@ -415,4 +415,4 @@ theorem diff_eq_inter_compl {A : Type} (S T : Set A) :
   expand
   expand
 
-end Course
+end Ample

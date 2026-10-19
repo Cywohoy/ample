@@ -2,7 +2,7 @@ import Ample.Math.Preliminaries
 import Ample.Tactic.Unfold
 import Ample.Tactic.Auto
 
-open Course
+open Ample
 
 private def bounded (x : Nat) : Prop := x < 3 ∧ True
 private def boundedAlias (x : Nat) : Prop := bounded x
@@ -128,7 +128,7 @@ example (x : Nat) (h : boundedAlias x) : x < 3 := by
 
 namespace WithAuto
 
-open scoped Course.Auto
+open scoped Ample.Auto
 
 example (x : Nat) (h : boundedAlias x) : x < 3 := by
   expand at h

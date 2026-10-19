@@ -9,21 +9,21 @@ without unfolding all mathematical definitions or solving goals from hypotheses.
 
 open Lean Meta Elab Tactic
 
-attribute [course_norm] Nat.not_lt Nat.not_le Int.not_lt Int.not_le
-attribute [course_classical_norm] Classical.not_not
-attribute [course_norm_hyp] Subtype.ext_iff Fin.ext_iff Prod.mk.injEq
+attribute [ample_norm] Nat.not_lt Nat.not_le Int.not_lt Int.not_le
+attribute [ample_classical_norm] Classical.not_not
+attribute [ample_norm_hyp] Subtype.ext_iff Fin.ext_iff Prod.mk.injEq
 
-register_option course.autoNormalize : Bool := {
+register_option ample.autoNormalize : Bool := {
   defValue := true
-  descr := "Normalize expressions automatically in the Course.Auto scope"
+  descr := "Normalize expressions automatically in the Ample.Auto scope"
 }
 
-namespace Course.Automation
+namespace Ample.Automation
 
 -- Preserve membership notation for named sets; compute a literal predicate by beta reduction.
-dsimproc ↓ [course_norm] anonymousMembership (@Membership.mem _ _ _ _ _) := fun e => do
+dsimproc ↓ [ample_norm] anonymousMembership (@Membership.mem _ _ _ _ _) := fun e => do
   let args := e.getAppArgs
-  unless args.size == 5 && args[2]!.getAppFn.isConstOf `Course.instMembershipSet do
+  unless args.size == 5 && args[2]!.getAppFn.isConstOf `Ample.instMembershipSet do
     return .continue
   let predicate := args[3]!.consumeMData
   if predicate.isLambda then
@@ -45,19 +45,19 @@ def normalizeGoal (goal : MVarId) : TacticM MVarId := goal.withContext do
   -- Selected transformation results get their reflexivity check separately.
   let targetSyntax ← if classicalEnabled then
     `(tactic| simp (config := { zetaDelta := true }) only
-      [course_norm, course_classical_norm, -eq_self, -iff_self])
+      [ample_norm, ample_classical_norm, -eq_self, -iff_self])
   else
     `(tactic| simp (config := { zetaDelta := true }) only
-      [course_norm, -eq_self, -iff_self])
+      [ample_norm, -eq_self, -iff_self])
   let hypSyntax ← if classicalEnabled then
     `(tactic| simp (config := { zetaDelta := true }) only
-      [course_norm, course_classical_norm, course_norm_hyp, -eq_self, -iff_self])
+      [ample_norm, ample_classical_norm, ample_norm_hyp, -eq_self, -iff_self])
   else
     `(tactic| simp (config := { zetaDelta := true }) only
-      [course_norm, course_norm_hyp, -eq_self, -iff_self])
+      [ample_norm, ample_norm_hyp, -eq_self, -iff_self])
   let targetCtx ← mkSimpContext targetSyntax (eraseLocal := false)
   let hypCtx ← mkSimpContext hypSyntax (eraseLocal := false)
-  let dsimpSyntax ← `(tactic| dsimp (config := { zetaDelta := true }) only [course_norm])
+  let dsimpSyntax ← `(tactic| dsimp (config := { zetaDelta := true }) only [ample_norm])
   let dsimpCtx ← mkSimpContext dsimpSyntax (eraseLocal := false) (kind := .dsimp)
   let mut current := goal
   -- Normalize the target first to reduce dependencies on subtype proof fields.
@@ -105,4 +105,4 @@ def normalizeGoals : TacticM Unit := do
     normalized := normalized ++ [next]
   setGoals normalized
 
-end Course.Automation
+end Ample.Automation

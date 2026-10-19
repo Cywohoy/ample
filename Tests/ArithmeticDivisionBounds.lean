@@ -1,6 +1,6 @@
 import Ample.Tactic.Arithmetic
 
-open Course
+open Ample
 
 example (n : Nat) : 3 / n ≤ 3 := by arith
 example (n : Int) : 3 / n ≤ 3 := by arith

@@ -8,20 +8,20 @@ import Ample.Tactic.Step
 open Lean Meta Elab Tactic
 open Lean.Parser.Tactic
 
-namespace Course
+namespace Ample
 
 -- Do not expand native rw's trailing unrestricted rfl: all transformations
 -- share the same non-instantiating reflexivity check instead.
 @[inherit_doc Lean.Parser.Tactic.rewriteSeq]
-scoped syntax (name := courseRewrite) "course_rw " optConfig rwRuleSeq
+scoped syntax (name := ampleRewrite) "ample_rw " optConfig rwRuleSeq
   (Lean.Parser.Tactic.location)? : tactic
 
 scoped macro_rules
   | `(tactic| rw $cfg:optConfig $rules:rwRuleSeq $[$loc:location]?) =>
-    `(tactic| course_rw $cfg:optConfig $rules:rwRuleSeq $[$loc]?)
+    `(tactic| ample_rw $cfg:optConfig $rules:rwRuleSeq $[$loc]?)
 
-@[tactic courseRewrite] def evalCourseRewrite : Tactic := fun stx => do
-  let `(tactic| course_rw $cfg:optConfig $rules:rwRuleSeq $[$loc:location]?) := stx
+@[tactic ampleRewrite] def evalAmpleRewrite : Tactic := fun stx => do
+  let `(tactic| ample_rw $cfg:optConfig $rules:rwRuleSeq $[$loc:location]?) := stx
     | throwUnsupportedSyntax
   Automation.runTransform do
     Lean.Elab.Tactic.evalRewriteSeq (← `(tactic| rewrite $cfg:optConfig $rules:rwRuleSeq $[$loc]?))
@@ -31,19 +31,19 @@ scoped macro_rules
     if goals.length > 1 then setGoals (goals.tail! ++ [goals.head!])
 
 @[scoped tactic Lean.Parser.Tactic.change, no_fallback]
-def evalCourseChange : Tactic := fun stx =>
+def evalAmpleChange : Tactic := fun stx =>
   Automation.runTransform <| Lean.Elab.Tactic.evalChange stx
 
 @[scoped tactic Lean.Parser.Tactic.unfold, no_fallback]
-def evalCourseUnfold : Tactic := fun stx =>
+def evalAmpleUnfold : Tactic := fun stx =>
   Automation.runTransform <| Lean.Elab.Tactic.evalUnfold stx
 
 @[scoped tactic Lean.Parser.Tactic.symm, no_fallback]
-def evalCourseSymm : Tactic := fun stx =>
+def evalAmpleSymm : Tactic := fun stx =>
   Automation.runTransform <| Lean.Elab.Tactic.evalSymm stx
 
 @[scoped tactic Lean.Parser.Tactic.dsimp, no_fallback]
-def evalCourseDSimp : Tactic := fun stx =>
+def evalAmpleDSimp : Tactic := fun stx =>
   Automation.runTransform do
     let { ctx, simprocs, .. } ← withMainContext <|
       mkSimpContext stx (eraseLocal := false) (kind := .dsimp)
@@ -69,4 +69,4 @@ def evalCourseDSimp : Tactic := fun stx =>
       unless remaining.isEmpty do throwError "'dsimp' made no progress."
       setGoals []
 
-end Course
+end Ample

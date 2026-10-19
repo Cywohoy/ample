@@ -11,12 +11,27 @@ After unfolding, Lean's dsimp engine computes argument substitution and pattern 
 
 open Lean Meta Elab Tactic
 
-namespace Course.Automation
+namespace Ample.Automation
+
+-- Applications opt imported mathematical modules into expansion explicitly.
+initialize expandModuleExtension : SimplePersistentEnvExtension Name (Array Name) ←
+  registerSimplePersistentEnvExtension {
+    addEntryFn := fun names name => if names.contains name then names else names.push name
+    addImportedFn := fun entries => entries.foldl (fun names more =>
+      more.foldl (fun names name => if names.contains name then names else names.push name) names) #[]
+  }
+
+/-- Allow `expand` to unfold definitions from this module prefix, including its submodules. -/
+elab "register_expand_module " moduleName:ident : command =>
+  modifyEnv (expandModuleExtension.addEntry · moduleName.getId)
 
 private def isLearnerDefinition (env : Environment) (name : Name) : Bool :=
   match env.getModuleIdxFor? name with
   | none => true
-  | some idx => (`AlgebraBook).isPrefixOf env.header.moduleNames[idx.toNat]! || (`Ample.Math).isPrefixOf env.header.moduleNames[idx.toNat]!
+  | some idx =>
+    let moduleName := env.header.moduleNames[idx.toNat]!
+    (`Ample.Math).isPrefixOf moduleName ||
+      (expandModuleExtension.getState env).any (·.isPrefixOf moduleName)
 
 -- Use Lean's definitional computation without theorem-based simplification rules.
 private def reduceSurface (e : Expr) : MetaM Expr := do
@@ -68,7 +83,7 @@ def unfoldExpression (e : Expr) : TacticM Expr := do
       -- Skip membership interface declarations and unfold one layer of the set definition.
       if e.isAppOfArity ``Membership.mem 5 then
         let args := e.getAppArgs
-        if args[2]!.getAppFn.isConstOf `Course.instMembershipSet then
+        if args[2]!.getAppFn.isConstOf `Ample.instMembershipSet then
           let application := mkApp args[3]! args[4]!
           if let some expanded ← expandHead? application then
             return .done expanded
@@ -79,9 +94,9 @@ def unfoldExpression (e : Expr) : TacticM Expr := do
     (skipConstInApp := true) (skipInstances := true)
   return ← reduceSurface result
 
-end Course.Automation
+end Ample.Automation
 
-namespace Course
+namespace Ample
 
 /-- `expand` unfolds one outer layer of mathematical-library or current-file definitions in each part of an expression.
 It also computes argument substitution, local definitions, projections, and pattern matching on supplied constructors.
@@ -89,13 +104,13 @@ Newly exposed definitions remain for the next call. It does not split conjunctio
 
 Use `expand at h` for a hypothesis, or `expand at *` for all hypotheses and the goal.
 Reflexive equalities produced in the current step are closed automatically. -/
-scoped syntax (name := courseExpand) "expand" (Lean.Parser.Tactic.location)? : tactic
+scoped syntax (name := ampleExpand) "expand" (Lean.Parser.Tactic.location)? : tactic
 
 -- Keep the old name available for existing proof files.
-@[inherit_doc courseExpand]
-scoped syntax (name := courseUnfoldAuto) "unfold_auto" (Lean.Parser.Tactic.location)? : tactic
+@[inherit_doc ampleExpand]
+scoped syntax (name := ampleUnfoldAuto) "unfold_auto" (Lean.Parser.Tactic.location)? : tactic
 
-@[tactic courseExpand, tactic courseUnfoldAuto]
+@[tactic ampleExpand, tactic ampleUnfoldAuto]
 def evalExpand : Tactic := fun stx => Automation.runTransform do
   withLocation (expandOptLocation stx[1])
     (fun h => do
@@ -116,9 +131,9 @@ def evalExpand : Tactic := fun stx => Automation.runTransform do
 /-- `expand!` repeats `expand` until no further change occurs.
 Use `expand! at h` to process a hypothesis. Expansion is limited to 32 iterations to prevent unbounded unfolding.
 If the limit is exceeded, use explicit `expand` steps for the required recursive definitions. -/
-scoped syntax (name := courseExpandRecursive) "expand!" (Lean.Parser.Tactic.location)? : tactic
+scoped syntax (name := ampleExpandRecursive) "expand!" (Lean.Parser.Tactic.location)? : tactic
 
-@[tactic courseExpandRecursive] def evalExpandRecursive : Tactic := fun stx => Automation.runTransform do
+@[tactic ampleExpandRecursive] def evalExpandRecursive : Tactic := fun stx => Automation.runTransform do
   let saved ← saveState
   let reduce (e : Expr) : TacticM Expr := do
     let mut current := e
@@ -142,4 +157,4 @@ scoped syntax (name := courseExpandRecursive) "expand!" (Lean.Parser.Tactic.loca
       (fun _ => throwError "Unable to expand the selected expressions.")
   catch e => saved.restore; throw e
 
-end Course
+end Ample

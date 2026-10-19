@@ -7,7 +7,7 @@ Register Lean's natural-number and integer arithmetic lemmas for arithmetic auto
 This module introduces no new axioms or mathematical definitions.
 -/
 
-attribute [course_arith_apply]
+attribute [ample_arith_apply]
   Nat.mod_lt Nat.div_lt_of_lt_mul
   Nat.mod_eq_of_lt Nat.div_eq_of_lt
   Nat.div_le_self Int.ediv_le_self
@@ -32,7 +32,7 @@ attribute [course_arith_apply]
   Nat.mod_eq_zero_of_dvd Nat.dvd_of_mod_eq_zero
   Int.emod_eq_zero_of_dvd Int.dvd_of_emod_eq_zero
 
-namespace Course.Automation
+namespace Ample.Automation
 
 -- Support division bounds for either ordering of a product.
 private theorem nat_lt_mul_of_div_lt_left {a b c : Nat}
@@ -96,24 +96,24 @@ private theorem int_le_mul_of_pos_right {a b : Int}
   rw [Int.mul_comm]
   exact int_le_mul_of_pos_left hb ha
 
-attribute [course_arith_apply]
+attribute [ample_arith_apply]
   Nat.lt_mul_of_div_lt nat_lt_mul_of_div_lt_left
   Int.lt_mul_of_ediv_lt int_lt_mul_of_ediv_lt_left
   nat_le_div_of_mul_le nat_div_le_of_lt_mul int_ediv_le_of_lt_mul
   nat_mul_le_of_le_div nat_lt_mul_of_div_le int_lt_mul_of_ediv_le
   int_le_mul_of_pos_left int_le_mul_of_pos_right
 
-attribute [course_arith_simp] nat_mul_add_div_right
-attribute [course_arith_simp] int_mul_le_mul_iff_pos_left
+attribute [ample_arith_simp] nat_mul_add_div_right
+attribute [ample_arith_simp] int_mul_le_mul_iff_pos_left
 
-end Course.Automation
+end Ample.Automation
 
-grind_pattern [course_arith_grind] Nat.le_mul_of_pos_left => n * m
-grind_pattern [course_arith_grind] Nat.le_mul_of_pos_right => n * m
-grind_pattern [course_arith_grind] Course.Automation.int_le_mul_of_pos_left => a * b
-grind_pattern [course_arith_grind] Course.Automation.int_le_mul_of_pos_right => a * b
+grind_pattern [ample_arith_grind] Nat.le_mul_of_pos_left => n * m
+grind_pattern [ample_arith_grind] Nat.le_mul_of_pos_right => n * m
+grind_pattern [ample_arith_grind] Ample.Automation.int_le_mul_of_pos_left => a * b
+grind_pattern [ample_arith_grind] Ample.Automation.int_le_mul_of_pos_right => a * b
 
-attribute [course_arith_simp]
+attribute [ample_arith_simp]
   Nat.add_mul_mod_self_left Nat.add_mul_mod_self_right
   Nat.add_mul_div_left Nat.add_mul_div_right
   Nat.mul_add_mod_self_left Nat.mul_add_mod_self_right Nat.mul_add_div
@@ -148,39 +148,39 @@ attribute [course_arith_simp]
   Int.mul_emod_left Int.mul_emod_right
 
 -- Recover equalities from division, remainder, and natural-number subtraction bounds.
-attribute [course_arith_grind .]
+attribute [ample_arith_grind .]
   Nat.ext_div_mod Int.ext_ediv_emod Nat.sub_add_cancel
 
 -- Use bounds for division and remainder expressions occurring in the goal.
-grind_pattern [course_arith_grind] Nat.div_le_self => n / k
-grind_pattern [course_arith_grind] Int.ediv_le_self => a / b
-grind_pattern [course_arith_grind] Nat.mod_lt => x % y
-grind_pattern [course_arith_grind] Int.emod_nonneg => a % b
-grind_pattern [course_arith_grind] Int.emod_lt_of_pos => a % b
-grind_pattern [course_arith_grind] Int.emod_lt_of_neg => a % b
-grind_pattern [course_arith_grind] Nat.div_mul_le_self => m / n
-grind_pattern [course_arith_grind] Int.ediv_mul_le => a / b
-grind_pattern [course_arith_grind] Int.lt_ediv_add_one_mul_self => a / b
-grind_pattern [course_arith_grind] Nat.div_eq_of_eq_mul_left => m / n, k * n
+grind_pattern [ample_arith_grind] Nat.div_le_self => n / k
+grind_pattern [ample_arith_grind] Int.ediv_le_self => a / b
+grind_pattern [ample_arith_grind] Nat.mod_lt => x % y
+grind_pattern [ample_arith_grind] Int.emod_nonneg => a % b
+grind_pattern [ample_arith_grind] Int.emod_lt_of_pos => a % b
+grind_pattern [ample_arith_grind] Int.emod_lt_of_neg => a % b
+grind_pattern [ample_arith_grind] Nat.div_mul_le_self => m / n
+grind_pattern [ample_arith_grind] Int.ediv_mul_le => a / b
+grind_pattern [ample_arith_grind] Int.lt_ediv_add_one_mul_self => a / b
+grind_pattern [ample_arith_grind] Nat.div_eq_of_eq_mul_left => m / n, k * n
   where guard m = k * n
-grind_pattern [course_arith_grind] Nat.div_eq_of_eq_mul_right => m / n, n * k
+grind_pattern [ample_arith_grind] Nat.div_eq_of_eq_mul_right => m / n, n * k
   where guard m = n * k
-grind_pattern [course_arith_grind] Int.ediv_eq_of_eq_mul_left => a / b, c * b
+grind_pattern [ample_arith_grind] Int.ediv_eq_of_eq_mul_left => a / b, c * b
   where guard a = c * b
-grind_pattern [course_arith_grind] Int.ediv_eq_of_eq_mul_right => a / b, b * c
+grind_pattern [ample_arith_grind] Int.ediv_eq_of_eq_mul_right => a / b, b * c
   where guard a = b * c
 
 -- Normalize operations modulo a common modulus and use known remainder equalities.
-attribute [course_arith_grind =]
+attribute [ample_arith_grind =]
   Nat.add_mod Nat.mul_mod Nat.pow_mod
   Int.add_emod Int.mul_emod Int.sub_emod Int.neg_emod_eq_sub_emod
 
-attribute [course_arith_grind →]
+attribute [ample_arith_grind →]
   Nat.mod_eq_zero_of_dvd Nat.dvd_of_mod_eq_zero
   Int.emod_eq_zero_of_dvd Int.dvd_of_emod_eq_zero
   Nat.le_of_mul_le_mul_left Nat.le_of_mul_le_mul_right
   Int.le_of_mul_le_mul_left Int.le_of_mul_le_mul_right
   Int.mul_le_of_le_ediv
-  Course.Automation.nat_mul_le_of_le_div
-  Course.Automation.nat_lt_mul_of_div_le
-  Course.Automation.int_lt_mul_of_ediv_le
+  Ample.Automation.nat_mul_le_of_le_div
+  Ample.Automation.nat_lt_mul_of_div_le
+  Ample.Automation.int_lt_mul_of_ediv_le

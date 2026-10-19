@@ -3,7 +3,7 @@ import Ample.Math.Numbers
 
 open scoped Classical
 
-namespace Course
+namespace Ample
 
 variable {A B : Type}
 
@@ -152,4 +152,4 @@ example (a : Int) :
   · exact Int.add_left_neg a
   · exact Int.add_right_neg a
 
-end Course
+end Ample

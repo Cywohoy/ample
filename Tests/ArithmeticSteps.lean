@@ -1,7 +1,7 @@
 import Ample.Tactic.Arithmetic
 import Ample.Tactic.Auto
 
-open Course
+open Ample
 
 -- 다항식, 자연수의 뺄셈, 몫과 나머지를 같은 산술 전술로 다룬다.
 
@@ -136,7 +136,7 @@ example (m : Nat) (ym : Fin m) : ym.val % m = ym.val := by
 
 namespace WithAuto
 
-open scoped Course.Auto
+open scoped Ample.Auto
 
 example (m : Nat) (ym : Fin m) :
     ym.val % m = ym.val ∧ ym.val / m = 0 := by
@@ -163,7 +163,7 @@ end WithAuto
 open Lean Elab Command in
 run_elab do
   let env ← getEnv
-  if env.contains `Course.courseSuffices then
+  if env.contains `Ample.ampleSuffices then
     throwError "The implicit suffices extension must not be registered."
   for input in ["suffices True", "suffices (0 < 1)"] do
     match Parser.runParserCategory env `tactic input with

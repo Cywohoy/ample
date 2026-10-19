@@ -1,7 +1,7 @@
 import Ample.Tactic.Wlog
 import Lean.Elab.Tactic.Omega
 
-open Course
+open Ample
 
 theorem wlog_swap (a b : Int) : a + b = b + a := by
   wlog hab : a ≤ b generalizing a b with ordered

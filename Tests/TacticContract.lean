@@ -1,6 +1,6 @@
 import Ample.Tactic
 
-open Course
+open Ample
 
 namespace TacticContract
 
@@ -216,11 +216,11 @@ theorem instance_failure_rolls_back (P Q : Prop)
   apply r at hp with result
   exact result
 
-open scoped Course.Auto in
+open scoped Ample.Auto in
 theorem normalization_and_finishing (n : Nat) : identNat n = n := by
   expand
 
-open scoped Course.Auto in
+open scoped Ample.Auto in
 theorem normalization_of_a_combined_result (a b c d : Nat)
     (h : (a, c) = (b, d)) : a = b ∧ c = d := by
   constructor with first second
@@ -228,7 +228,7 @@ theorem normalization_of_a_combined_result (a b c d : Nat)
   guard_target =ₛ (a, c) = (b, d)
   exact h
 
-open scoped Course.Auto in
+open scoped Ample.Auto in
 theorem normalization_preserves_reflexive_pending_goals (n m : Nat) :
     (n + 0 = n) ∧ (m = m) := by
   constructor with first second

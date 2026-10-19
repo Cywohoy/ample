@@ -4,7 +4,7 @@ import Ample.Tactic.Arithmetic
 
 open scoped Classical
 
-namespace Course
+namespace Ample
 variable {A B C : Type} {m n : Nat}
 local infixr:90 (priority := high) " ∘ " => compose
 
@@ -228,7 +228,7 @@ example
   suffices bound : a < m by arith
   exact h
 
-open scoped Course.Auto
+open scoped Ample.Auto
 
 example (a b : Nat) :
     min a b + max a b = a + b := by
@@ -242,4 +242,4 @@ example (a b : Nat) :
   ·
     rw [Nat.min_eq_left hab, Nat.max_eq_right hab]
 
-end Course
+end Ample

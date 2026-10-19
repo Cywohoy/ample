@@ -1,7 +1,7 @@
 import Ample.Math.Cardinality
 import Ample.Tactic.Auto
 
-open Course
+open Ample
 
 variable {A B C : Type} {m n : Nat}
 
@@ -92,7 +92,7 @@ example (h : cardinal (Fin n) = cardinal A) : cardinal A = n := by card
 
 section
 
-open scoped Course.Auto
+open scoped Ample.Auto
 
 -- Automatic expression cleanup must retain the explicit quotient comparison step.
 example (f : Fin n → A) (hf : Bijective f) : cardinal A = n := by

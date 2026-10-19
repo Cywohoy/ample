@@ -1,7 +1,7 @@
 import Ample.Math.Cardinality
 import Ample.Tactic.Auto
 
-open Course
+open Ample
 
 private def fromTwo : Set Nat := fun n => 2 ≤ n
 
@@ -12,7 +12,7 @@ example (x : Nat) (h : x ∈ fromTwo) : 2 ≤ x := by
 
 namespace AutoNormalizeTests
 
-open scoped Course.Auto
+open scoped Ample.Auto
 
 -- 이름 붙인 집합의 원소 표기는 명시적으로 펼칠 때까지 유지한다.
 example (x : Nat) (h : x ∈ fromTwo) : 2 ≤ x := by
@@ -107,14 +107,14 @@ example (P : Prop) (h : ¬¬ P) : P := by
   guard_hyp h :ₛ P
   exact hn h
 
-set_option course.autoNormalize false in
+set_option ample.autoNormalize false in
 example (P : Prop) (h : ¬¬ P) : ¬¬ P := by
   classical
   guard_hyp h :ₛ ¬¬ P
   guard_target =ₛ ¬¬ P
   exact h
 
-set_option course.autoNormalize false in
+set_option ample.autoNormalize false in
 example (P : Prop) (h : ¬¬ P) : P := by
   by_cases hp : P
   · guard_hyp h :ₛ ¬¬ P
@@ -253,7 +253,7 @@ example (n : Nat) (h : n ∈ positives) : 0 < n := by
   exact h
 
 -- 특정 증명에서는 정리를 끌 수 있다.
-set_option course.autoNormalize false in
+set_option ample.autoNormalize false in
 example (a : Int) (h : ¬ a < 0) : 0 ≤ a := by
   guard_hyp h : ¬ a < 0
   omega

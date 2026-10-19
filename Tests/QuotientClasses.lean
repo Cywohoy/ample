@@ -1,7 +1,7 @@
 import Ample.Math.Cardinality
 import Ample.Tactic.Auto
 
-open Course
+open Ample
 
 -- The quotient set contains sets; its element type packages membership evidence.
 example {A : Type} (R : Relation A) (a : A) :
@@ -103,10 +103,10 @@ example : ¬ ∃ F : Parity → Int, ∀ a : Int, F (parityClass a) = a := by
 open Lean Meta in
 run_meta do
   let input ← mkFreshExprMVar (mkConst ``Int)
-  let lhs ← mkAppM ``Course.parityClass #[input]
+  let lhs ← mkAppM ``Ample.parityClass #[input]
   let zero := mkApp (mkConst ``Int.ofNat) (mkNatLit 0)
-  let rhs ← mkAppM ``Course.parityClass #[zero]
-  let comparison ← Course.Automation.registeredComparison? (← mkEq lhs rhs)
+  let rhs ← mkAppM ``Ample.parityClass #[zero]
+  let comparison ← Ample.Automation.registeredComparison? (← mkEq lhs rhs)
   unless comparison.isNone do throwError "A comparison matched an unresolved input."
   if ← input.mvarId!.isAssigned then throwError "Comparison matching assigned an existing input."
 

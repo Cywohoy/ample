@@ -2,7 +2,7 @@ import Ample.Math.Cardinality
 import Ample.Math.Preliminaries
 import Ample.Tactic.Indiscern
 
-open Course
+open Ample
 
 theorem pointwise_without_ext {A B : Type} (f g : A → B) (h : f = g) (x : A) :
     f x = g x := by

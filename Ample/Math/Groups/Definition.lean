@@ -3,7 +3,7 @@ import Ample.Math.Operations
 
 open scoped Classical
 
-namespace Course
+namespace Ample
 
 variable {A B : Type}
 
@@ -163,4 +163,4 @@ theorem solve_op_right (a b : A) : (b * a⁻¹) * a = b := by
     _ = b * e := by rw [G.inv_left]
     _ = b := by rw [G.id_right]
 
-end Course
+end Ample

@@ -1,6 +1,6 @@
 import Ample.Math.Sets
 
-open Course
+open Ample
 
 variable {A : Type} (S : Set A) (x : A) (P : Prop)
 
@@ -48,7 +48,7 @@ example (h : x ∈ Sᶜ) : x ∈ Sᶜ := by
   exact h
 
 section
-open scoped Course.Auto Classical
+open scoped Ample.Auto Classical
 
 example (h : ¬ (x ∈ S)) : ¬ (x ∈ S) := by
   guard_hyp h :ₛ Not (Membership.mem S x)

@@ -1,6 +1,6 @@
 import Ample.Math.GroupBasics
 
-open Course
+open Ample
 
 -- 등식의 대입과 가정으로 주어진 사실의 사용은 공통 추론에 속한다.
 example (A : Type) (f : A → A) (x y : A) (h : x = y) : f x = f y := by

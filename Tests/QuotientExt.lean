@@ -11,7 +11,7 @@ example (a b : Nat) (h : a = b) :
   apply Quotient.sound
   exact h
 
-open Course
+open Ample
 
 example (a b : Nat) (h : a = b) :
     Quotient.mk equalitySetoid a = Quotient.mk equalitySetoid b := by
