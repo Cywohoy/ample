@@ -11,10 +11,10 @@ example (fA : Fin m → A) (fB : Fin n → B)
   rintro ⟨yA, yB⟩
   exists (inverseMap fA hA yA, inverseMap fB hB yB)
   ext : 1
-  · apply inverseMap_spec
+  · apply inverseMap_right
     guard_target = Bijective fA
     exact hA
-  · apply inverseMap_spec
+  · apply inverseMap_right
     guard_target = Bijective fB
     exact hB
 
@@ -25,5 +25,5 @@ example (fA : Fin m → A) (fB : Fin n → B)
   rintro ⟨yA, yB⟩
   exists (inverseMap fA hA yA, inverseMap fB hB yB)
   ext : 1
-  · apply inverseMap_spec _ hA
-  · apply inverseMap_spec _ hB
+  · apply inverseMap_right _ hA
+  · apply inverseMap_right _ hB

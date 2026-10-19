@@ -10,8 +10,8 @@ example {A B : Type} {m n : Nat}
     Injective (fun x : Fin m × Fin n => (fA x.1, fB x.2)) := by
   intro x y hxy
   injection hxy with hAxy hBxy
-  have hx : x.1 = y.1 := hA.injective _ _ hAxy
-  have hy : x.2 = y.2 := hB.injective _ _ hBxy
+  have hx : x.1 = y.1 := hA.inj _ _ hAxy
+  have hy : x.2 = y.2 := hB.inj _ _ hBxy
   injections
   ext : 1
   · assumption
@@ -27,8 +27,8 @@ example {A B : Type} {m n : Nat}
     Injective (fun x : Fin m × Fin n => (fA x.1, fB x.2)) := by
   intro x y hxy
   injection hxy with hAxy hBxy
-  have hx : x.1 = y.1 := hA.injective _ _ hAxy
-  have hy : x.2 = y.2 := hB.injective _ _ hBxy
+  have hx : x.1 = y.1 := hA.inj _ _ hAxy
+  have hy : x.2 = y.2 := hB.inj _ _ hBxy
   injections
   ext : 1
   · assumption
@@ -51,5 +51,5 @@ end WithAuto
 
 example {A B : Type} (f : A → B) (hf : Bijective f) : Bijective f := by
   constructor
-  · exact hf.injective
-  · exact hf.surjective
+  · exact hf.inj
+  · exact hf.surj

@@ -24,12 +24,12 @@ theorem cardinalityLE_transport {A B : Type} {A' B' : Type}
 
   have hFirst : Injective (f ∘ inverseMap a ha) := by
     apply injective_compose
-    · exact (inverseMap_bijective a ha).injective
+    · exact (inverseMap_bijective a ha).inj
     · exact hf
 
 
   exists b ∘ f ∘ inverseMap a ha
-  exact injective_compose _ _ hFirst hb.injective
+  exact injective_compose _ _ hFirst hb.inj
 
 namespace Cardinal
 
@@ -129,7 +129,7 @@ theorem countablyInfinite_isInfinite {A : Type}
     (hA : IsCountablyInfinite A) :
     IsInfinite A := by
   unpack (cardinal_eq_iff Nat A).mp hA with ⟨f, hf⟩
-  exact infinite_of_nat_injection f hf.injective
+  exact infinite_of_nat_injection f hf.inj
 
 theorem positives_countablyInfinite :
     IsCountablyInfinite (Elem positives) := by
@@ -398,7 +398,7 @@ theorem powerSet_not_sameCardinality (A : Type) :
     ¬ SameCardinality A (Set A) := by
   intro h
   unpack h with ⟨f, hf⟩
-  exact cantor_not_surjective f hf.surjective
+  exact cantor_not_surjective f hf.surj
 
 theorem cardinality_lt_powerSet (A : Type) :
     CardinalityLT A (Set A) := by

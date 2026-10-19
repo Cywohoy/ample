@@ -57,7 +57,7 @@ example (hA : cardinal A = m) (hB : cardinal B = n) :
   · rintro ⟨yA, yB⟩
     exists (inverseMap fA hA yA, inverseMap fB hB yB)
     ext : 1
-    · apply inverseMap_spec _ hA
-    · apply inverseMap_spec _ hB
+    · apply inverseMap_right _ hA
+    · apply inverseMap_right _ hB
 
 end CardinalityArithmetic

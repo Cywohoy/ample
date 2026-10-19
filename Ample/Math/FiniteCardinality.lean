@@ -431,9 +431,9 @@ theorem fin_sameCardinality_eq {m n : Nat}
 
 
   have hmn : m ≤ n :=
-    fin_injective_le f hf.injective
+    fin_injective_le f hf.inj
   have hnm : n ≤ m :=
-    fin_injective_le g hg.injective
+    fin_injective_le g hg.inj
 
   arith
 
@@ -521,7 +521,7 @@ theorem infinite_of_nat_injection {A : Type} (f : Nat → A)
 
 
   apply no_injection_nat_fin n (r ∘ f)
-  exact injective_compose f r hf hr.injective
+  exact injective_compose f r hf hr.inj
 
 theorem nat_isInfinite : IsInfinite Nat := by
   exact infinite_of_nat_injection
