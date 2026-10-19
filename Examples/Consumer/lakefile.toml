@@ -1,0 +1,10 @@
+name = "ample-consumer"
+defaultTargets = ["ample-consumer"]
+
+[[require]]
+name = "ample"
+path = "../.."
+
+[[lean_exe]]
+name = "ample-consumer"
+root = "Main"

@@ -1,0 +1,17 @@
+name = "ample"
+version = "0.1.0"
+description = "Mathematical structures and proof tactics built on Lean's standard foundations."
+keywords = ["mathematics", "tactics", "education"]
+license = "Apache-2.0"
+defaultTargets = ["Ample", "Tests"]
+
+[[lean_lib]]
+name = "Ample"
+globs = ["Ample.*"]
+
+[[lean_lib]]
+name = "Tests"
+
+[[lean_exe]]
+name = "ample-demo"
+root = "Examples.Main"
