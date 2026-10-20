@@ -28,7 +28,10 @@ theorem even_ne_odd (m : Nat) :
       contradiction
 
   | succ m ih =>
+      -- ih : ∀ n, 2 * m ≠ 2 * n + 1
+
       intro n h
+
 
       cases n with
       | zero =>

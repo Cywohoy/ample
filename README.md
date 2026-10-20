@@ -4,9 +4,6 @@ Ample is a Lean library for defining mathematical objects and writing proofs.
 It uses Lean 4.35.0's standard types, propositions, equality, and kernel.
 Its only dependencies are `Init`, `Std`, and `Lean`, as shipped with Lean itself.
 
-Ample uses Lean's existing kernel. The earlier Cubical foundations experiment
-is archived separately and is not part of this package.
-
 ## Usage
 
 ```lean
@@ -25,9 +22,6 @@ theorem group_inverse {A : Type} (G : Group A) (a : A) :
 
 Public mathematical declarations and tactics use the `Ample` namespace.
 Normalization uses `Ample.Auto`, and rule attributes use the `ample_*` prefix.
-Version 0.2 changes the namespace used by earlier releases: use `open Ample`,
-`open scoped Ample.Auto`, and trace options such as `trace.Ample.arith`.
-Legacy textbook naming is supported by the textbook's adapter, not by this package.
 Opening `Ample` makes the mathematical names and scoped tactics available.
 `open scoped Ample.Auto` enables presentation normalization before and after proof steps.
 Use `open scoped Classical` in scopes that should use classical logic by default.
@@ -57,7 +51,6 @@ theorem remainder_of_fin (m : Nat) (i : Fin m) : i.val % m = i.val := by
   exact i.isLt
 ```
 
-Ample does not provide the former `suffices G` shorthand that searched for the connecting proof automatically.
 Library documentation, hover help, diagnostics, and implementation comments are written in English.
 The accompanying Korean textbook is maintained separately.
 
@@ -118,7 +111,7 @@ Each construction packages its value and law in a subtype before exposing them s
 
 | Construction | Bundled data | Value | Law |
 | --- | --- | --- | --- |
-| Inverse function | `inverseMapData` | `inverseMap` | `inverseMap_spec` |
+| Inverse function | `inverseMapData` | `inverseMap` | `inverseMap_right`, `inverseMap_left` |
 | Representative | `quotientReprData` | `quotientRepr` | `quotientRepr_spec` |
 | Finite size | `cardinalityData` | `cardinality` | `cardinality_spec` |
 | Listing extension | `nextListingData` | `nextListing` | `nextListing_spec` |

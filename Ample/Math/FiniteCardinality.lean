@@ -450,6 +450,11 @@ theorem finite_cardinal_unique {A : Type} {m n : Nat}
   apply cardinal_fin_eq
   exact hm.symm.trans hn
 
+example (n : Nat)
+    (hn : cardinal (Elem threeNumbers) = cardinal (Fin n)) :
+    n = 3 := by
+  exact finite_cardinal_unique hn threeNumbers_cardinal
+
 namespace Cardinal
 
 def ofNat (n : Nat) : Cardinal := cardinal (Fin n)

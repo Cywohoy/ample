@@ -20,45 +20,37 @@ def positives : Set Nat := positive
 instance {A : Type _} : Membership A (Set A) where
   mem S x := S x
 
-example : 3 ∈ positives := by
-  change 0 < 3
-  decide
-
 @[simp] theorem mem_def {A : Type} (S : Set A) (x : A) :
     (x ∈ S) = S x := rfl
 
 attribute [ample_arith_simp] mem_def positives positive
 
-example
-    (n : Nat)
+example (n : Nat)
+    (h : 0 < n) :
+    n ∈ positives := by
+  expand
+
+  expand
+
+  exact h
+
+example (n : Nat)
+    (h : n ∈ positives) :
+    0 < n := by
+  expand at h
+  expand at h
+  exact h
+
+example (n : Nat)
     (h : 0 < n) :
     n ∈ positives := by
   dsimp [positives]
   dsimp [positive]
   exact h
 
-example
-    (n : Nat)
-    (h : n ∈ positives) :
-    0 < n := by
-  dsimp [positives] at h
-  dsimp [positive] at h
-  exact h
-
-example
-    (n : Nat)
-    (h : 0 < n) :
-    n ∈ positives := by
-  expand
-  expand
-  exact h
-
-example
-    (n : Nat)
-    (h : 0 < n) :
-    n ∈ positives := by
-  expand!
-  exact h
+example : 3 ∈ positives := by
+  change 0 < 3
+  decide
 
 def whole (A : Type) : Set A := fun _ => True
 def empty (A : Type) : Set A := fun _ => False

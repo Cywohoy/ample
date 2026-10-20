@@ -568,7 +568,8 @@ theorem inverseMap_bijective {A B : Type} (f : A → B)
       rw [hxy]
 
 
-    rw [inverseMap_right f hf x, inverseMap_right f hf y] at h
+    rw [inverseMap_right f hf x,
+      inverseMap_right f hf y] at h
     exact h
 
   · intro x
