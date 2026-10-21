@@ -1,5 +1,5 @@
 name = "ample"
-version = "0.2.0"
+version = "0.2.2"
 description = "Mathematical structures and proof tactics built on Lean's standard foundations."
 keywords = ["mathematics", "tactics", "education"]
 license = "Apache-2.0"

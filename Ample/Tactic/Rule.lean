@@ -371,7 +371,7 @@ def combineConstructorGoals (selected : Array MVarId) (target? : Option Syntax)
 
 /-- Open one product-like constructor. A field naming pattern never selects a sum branch. -/
 def unpackRuleHypothesis (goal : MVarId) (hypothesis : FVarId)
-    (pattern? : Option RulePattern) : TacticM (List MVarId) := goal.withContext do
+    (pattern? : Option RulePattern) (eliminate : Bool := true) : TacticM (List MVarId) := goal.withContext do
   let type ← whnf (← hypothesis.getType)
   let .const head _ := type.getAppFn
     | throwError "unpack requires a product-like type with one constructor."
@@ -395,17 +395,18 @@ def unpackRuleHypothesis (goal : MVarId) (hypothesis : FVarId)
     let children ← (List.range ctor.numFields).toArray.mapM fun i => do
       pure (RulePattern.name (← mkFreshUserName (.mkSimple s!"field_{i + 1}")))
     pure (.tuple children)
-  let .tuple children := pattern | throwError "Expected a tuple field pattern."
-  if let some structureInfo := getStructureInfo? (← getEnv) head then
-    unless structureInfo.fieldNames.size == children.size do
-      throwError "The structure fields do not match the constructor fields."
-    let mut outputs := #[]
-    for fieldName in structureInfo.fieldNames do
-      let some field := getFieldInfo? (← getEnv) head fieldName
-        | throwError "Unable to inspect a projection function."
-      let proof ← mkAppM field.projFn #[mkFVar hypothesis]
-      outputs := outputs.push {proof, type := ← inferType proof}
-    return ← noteRuleOutputs goal outputs children `field
+  if !eliminate then
+    if let some structureInfo := getStructureInfo? (← getEnv) head then
+      let .tuple children := pattern | throwError "Expected a tuple field pattern."
+      unless structureInfo.fieldNames.size == children.size do
+        throwError "The structure fields do not match the constructor fields."
+      let mut outputs := #[]
+      for fieldName in structureInfo.fieldNames do
+        let some field := getFieldInfo? (← getEnv) head fieldName
+          | throwError "Unable to inspect a projection function."
+        let proof ← mkAppM field.projFn #[mkFVar hypothesis]
+        outputs := outputs.push {proof, type := ← inferType proof}
+      return ← noteRuleOutputs goal outputs children `field
   let pattern ← nativePattern pattern
   let name ← hypothesis.getUserName
   evalTacticAt (← `(tactic| rcases $(mkIdent name):ident with $pattern:rcasesPat)) goal
@@ -765,6 +766,8 @@ scoped syntax (name := ruleCasesGoals) (priority := high)
 
 /-- `unpack h with ⟨hp, hq⟩` opens one layer of a single-constructor value or proof, such as a pair or conjunction.
 For example, `h : P ∧ Q` yields `hp : P` and `hq : Q`.
+For a local variable, the original variable is eliminated and dependent hypotheses and the goal are updated, as with `rcases`.
+For a structure-valued expression, the field names denote its projections without eliminating variables inside the expression.
 Use `cases` for a choice of constructors, or `rcases` for nested pattern decomposition. -/
 scoped syntax (name := ruleUnpack) (priority := high)
   "unpack " term (" with " ruleOutput)? : tactic
@@ -791,7 +794,7 @@ scoped syntax (name := ruleUnpackGoals) (priority := high)
         else (← (← getMainGoal).define name type value).intro1P
       let pattern? ← if stx[2].isNone then pure none else
         pure (some (← parseRulePattern ⟨stx[2][1]⟩))
-      replaceMainGoal (← unpackRuleHypothesis goal hypothesis pattern?)
+      replaceMainGoal (← unpackRuleHypothesis goal hypothesis pattern? value.isFVar)
   catch e => saved.restore; throw e
 
 @[tactic ruleUnpackGoals] def evalRuleUnpackGoals : Tactic := fun stx => do

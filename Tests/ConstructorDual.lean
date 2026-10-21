@@ -364,11 +364,31 @@ theorem reject_unsound_universal (A : Type) (P : A → Prop) (a : A) (ha : P a) 
 #print axioms unknown_application_rule
 #print axioms unknown_universal_rule
 
-theorem projection_unpack_preserves_object (p : Nat × Nat) : p.1 = p.1 := by
+theorem unpack_pair_substitutes_projections (p : Nat × Nat)
+    (h : p.1 = p.2) : p.2 = p.1 := by
   unpack p with ⟨first, second⟩
-  guard_hyp p :ₛ Nat × Nat
-  have h : first = p.1 := by rfl
-  exact h
+  fail_if_success guard_hyp p :ₛ Nat × Nat
+  guard_hyp h : first = second
+  guard_target = second = first
+  exact h.symm
+
+theorem unpack_fin_substitutes_projections (n : Nat) (x : Fin n)
+    (h : x.val = 2) : x.val + 1 = 3 := by
+  unpack x with ⟨a, ha⟩
+  fail_if_success guard_hyp x :ₛ Fin n
+  guard_hyp ha :ₛ a < n
+  guard_hyp h : a = 2
+  guard_target = a + 1 = 3
+  rw [h]
+
+theorem unpack_subtype_substitutes_projections (P : Nat → Prop)
+    (x : {a : Nat // P a}) (h : x.val = 2) : P x.val := by
+  unpack x with ⟨a, ha⟩
+  fail_if_success guard_hyp x :ₛ {a : Nat // P a}
+  guard_hyp ha :ₛ P a
+  guard_hyp h : a = 2
+  guard_target = P a
+  exact ha
 
 def projection_data_constructor (n : Nat) (b : Bool) : Nat × Bool := by
   constructor at n b with p
