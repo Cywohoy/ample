@@ -1,6 +1,7 @@
 import Lean.Elab.Tactic.Simp
 import Ample.Tactic.Rules
 import Ample.Tactic.Classical
+import Ample.Tactic.Set
 
 /-!
 Shared presentation normalization. Apply registered expression rewrites and definitional computation
@@ -43,28 +44,35 @@ def normalizeGoal (goal : MVarId) : TacticM MVarId := goal.withContext do
   -- `simp only` includes eq_self and iff_self by default. Exclude them so
   -- normalization preserves proof obligations even inside a conjunction.
   -- Selected transformation results get their reflexivity check separately.
+  -- Expand ordinary local lets, but retain names deliberately introduced by `set`.
+  let mut localLets : SimpTheorems := {}
+  for decl in ← getLCtx do
+    if decl.isLet && !Ample.isSetAlias decl then
+      localLets := localLets.addLetDeclToUnfold decl.fvarId
+  let retainAliases (ctx : Simp.Context) : Simp.Context :=
+    ctx.setSimpTheorems (ctx.simpTheorems.push localLets)
   let targetSyntax ← if classicalEnabled then
-    `(tactic| simp (config := { zetaDelta := true }) only
+    `(tactic| simp (config := { zetaDelta := false }) only
       [ample_norm, ample_classical_norm, -eq_self, -iff_self])
   else
-    `(tactic| simp (config := { zetaDelta := true }) only
+    `(tactic| simp (config := { zetaDelta := false }) only
       [ample_norm, -eq_self, -iff_self])
   let hypSyntax ← if classicalEnabled then
-    `(tactic| simp (config := { zetaDelta := true }) only
+    `(tactic| simp (config := { zetaDelta := false }) only
       [ample_norm, ample_classical_norm, ample_norm_hyp, -eq_self, -iff_self])
   else
-    `(tactic| simp (config := { zetaDelta := true }) only
+    `(tactic| simp (config := { zetaDelta := false }) only
       [ample_norm, ample_norm_hyp, -eq_self, -iff_self])
   let targetCtx ← mkSimpContext targetSyntax (eraseLocal := false)
   let hypCtx ← mkSimpContext hypSyntax (eraseLocal := false)
-  let dsimpSyntax ← `(tactic| dsimp (config := { zetaDelta := true }) only [ample_norm])
+  let dsimpSyntax ← `(tactic| dsimp (config := { zetaDelta := false }) only [ample_norm])
   let dsimpCtx ← mkSimpContext dsimpSyntax (eraseLocal := false) (kind := .dsimp)
   let mut current := goal
   -- Normalize the target first to reduce dependencies on subtype proof fields.
   let originalTarget ← instantiateMVars (← current.getType)
-  let (target, _) ← Meta.dsimp originalTarget dsimpCtx.ctx dsimpCtx.simprocs
+  let (target, _) ← Meta.dsimp originalTarget (retainAliases dsimpCtx.ctx) dsimpCtx.simprocs
   current ← current.replaceTargetDefEq target
-  let (result, _) ← Meta.simp target targetCtx.ctx targetCtx.simprocs
+  let (result, _) ← Meta.simp target (retainAliases targetCtx.ctx) targetCtx.simprocs
   unless result.expr.consumeMData.isTrue || result.expr.consumeMData.isFalse do
     current ← applySimpResultToTarget current target result
   -- Do not use hypotheses as rewrite rules or automatically prove truth or contradiction.
@@ -72,12 +80,12 @@ def normalizeGoal (goal : MVarId) : TacticM MVarId := goal.withContext do
   for hyp in hypotheses do
     current ← current.withContext do
       let originalType ← instantiateMVars (← hyp.getType)
-      let (type, _) ← Meta.dsimp originalType dsimpCtx.ctx dsimpCtx.simprocs
+      let (type, _) ← Meta.dsimp originalType (retainAliases dsimpCtx.ctx) dsimpCtx.simprocs
       let current ← current.replaceLocalDeclDefEq hyp type
       -- Add value comparisons for constructed elements while retaining the original equality.
       -- Equalities of variable elements remain usable directly by exact and rw.
       let ctx := if ← isConstructedEquality type then hypCtx else targetCtx
-      let (result, _) ← Meta.simp type ctx.ctx ctx.simprocs
+      let (result, _) ← Meta.simp type (retainAliases ctx.ctx) ctx.simprocs
       if result.expr.consumeMData.isTrue || result.expr.consumeMData.isFalse then
         return current
       if ← isConstructedEquality type then
@@ -106,3 +114,4 @@ def normalizeGoals : TacticM Unit := do
   setGoals normalized
 
 end Ample.Automation
+

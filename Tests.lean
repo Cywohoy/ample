@@ -37,3 +37,5 @@ import Tests.RuleStructure
 import Tests.UnfoldInference
 import Tests.Wlog
 import Tests.TacticContract
+
+import Tests.Set

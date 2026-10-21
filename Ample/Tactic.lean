@@ -1,6 +1,7 @@
 import Ample.Tactic.Classical
 import Ample.Tactic.Auto
 import Ample.Tactic.Transform
+import Ample.Tactic.Set
 import Ample.Tactic.Congr
 import Ample.Tactic.Arithmetic
 import Ample.Tactic.Cardinality
