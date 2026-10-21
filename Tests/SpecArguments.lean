@@ -6,6 +6,7 @@ open scoped Ample Classical
 -- Constructing objects still takes the mathematical data explicitly.
 -- Their specification lemmas infer only what their rewrite patterns contain.
 section Inverse
+-- Both identities take the function explicitly; evidence and points are inferred.
 variable {A B : Type} (f : A → B) (hf : Bijective f)
 
 example (x : A) : inverseMap f hf (f x) = x := by

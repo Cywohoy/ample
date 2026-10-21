@@ -40,3 +40,4 @@ import Tests.TacticContract
 
 import Tests.Set
 import Tests.SpecArguments
+import Tests.CardinalConstructions

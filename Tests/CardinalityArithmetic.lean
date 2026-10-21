@@ -35,7 +35,7 @@ theorem splitIndex_bijective (m n : Nat) : Bijective (splitIndex m n) := by
         arith
 
 example (hA : cardinal A = m) (hB : cardinal B = n) :
-    cardinal (A × B) = m * n := by
+    cardinal (A × B) = ((m * n : Nat) : Cardinal) := by
   rcases (cardinal_eq_iff _ _).mp hA.symm with ⟨fA, hA⟩
   rcases (cardinal_eq_iff _ _).mp hB.symm with ⟨fB, hB⟩
   symm
