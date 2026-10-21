@@ -52,7 +52,7 @@ noncomputable def permutationGroup (A : Type) :
   inv_left := by
     intro p
     ext x : 2
-    exact inverseMap_left (hf := p.property)
+    exact inverseMap_left p.val (hf := p.property)
 
   inv_right := by
     intro p

@@ -506,7 +506,7 @@ theorem inverseMap_right {A B : Type} (f : A → B)
     f (inverseMap f hf y) = y := by
   exact (inverseMapData f hf).property y
 
-theorem inverseMap_left {A B : Type} {f : A → B}
+theorem inverseMap_left {A B : Type} (f : A → B)
     {hf : Bijective f}
     {x : A} :
     inverseMap f hf (f x) = x := by
@@ -520,7 +520,7 @@ theorem inverse_exists {A B : Type} (f : A → B)
   exists (inverseMap f hf)
   constructor
   · intro x
-    exact inverseMap_left
+    exact inverseMap_left f
 
   · intro y
     exact inverseMap_right f
@@ -545,7 +545,7 @@ example {A B : Type} :
   apply inverse_function_unique swapPair
   · constructor
     · intro x
-      exact inverseMap_left
+      exact inverseMap_left swapPair
 
     · intro y
       exact inverseMap_right swapPair
@@ -558,7 +558,7 @@ theorem inverseMap_compose {A B : Type} (f : A → B)
     (hf : Bijective f) :
     inverseMap f hf ∘ f = identity A := by
   ext x
-  exact inverseMap_left
+  exact inverseMap_left f
 
 theorem compose_inverseMap {A B : Type} (f : A → B)
     (hf : Bijective f) :
@@ -584,6 +584,6 @@ theorem inverseMap_bijective {A B : Type} (f : A → B)
   · intro x
 
     exists (f x)
-    exact inverseMap_left
+    exact inverseMap_left f
 
 end Ample

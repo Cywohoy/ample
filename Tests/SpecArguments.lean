@@ -9,9 +9,9 @@ section Inverse
 variable {A B : Type} (f : A → B) (hf : Bijective f)
 
 example (x : A) : inverseMap f hf (f x) = x := by
-  exact inverseMap_left
+  exact inverseMap_left f
 example (x : A) : inverseMap f hf (f x) = x := by
-  rw [inverseMap_left]
+  rw [inverseMap_left f]
 example (y : B) : f (inverseMap f hf y) = y := by
   exact inverseMap_right f
 example (y : B) : f (inverseMap f hf y) = y := by
@@ -20,7 +20,7 @@ example (y : B) : f (inverseMap f hf y) = y := by
 -- Implicit point arguments are introduced before proving a universal law.
 example : ∀ x, inverseMap f hf (f x) = x := by
   intro x
-  exact inverseMap_left
+  exact inverseMap_left f
 end Inverse
 
 section Representatives
