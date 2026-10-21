@@ -322,6 +322,12 @@ theorem identity_compose {A B : Type} (f : A → B) :
   ext x
   rfl
 
+attribute [simp] compose_identity identity_compose
+
+example {A B : Type} (f : A → B) :
+    (identity B ∘ f) ∘ identity A = f := by
+  simp
+
 theorem injective_compose {A B C : Type}
     (f : A → B) (g : B → C)
     (hf : Injective f)
@@ -495,17 +501,17 @@ noncomputable def inverseMap {A B : Type} (f : A → B)
     (hf : Bijective f) : B → A :=
   (inverseMapData f hf).val
 theorem inverseMap_right {A B : Type} (f : A → B)
-    (hf : Bijective f)
-    (y : B) :
+    {hf : Bijective f}
+    {y : B} :
     f (inverseMap f hf y) = y := by
   exact (inverseMapData f hf).property y
 
-theorem inverseMap_left {A B : Type} (f : A → B)
-    (hf : Bijective f)
-    (x : A) :
+theorem inverseMap_left {A B : Type} {f : A → B}
+    {hf : Bijective f}
+    {x : A} :
     inverseMap f hf (f x) = x := by
   apply hf.inj
-  exact inverseMap_right f hf (f x)
+  exact inverseMap_right f
 
 theorem inverse_exists {A B : Type} (f : A → B)
     (hf : Bijective f) :
@@ -514,10 +520,10 @@ theorem inverse_exists {A B : Type} (f : A → B)
   exists (inverseMap f hf)
   constructor
   · intro x
-    exact inverseMap_left f hf x
+    exact inverseMap_left
 
   · intro y
-    exact inverseMap_right f hf y
+    exact inverseMap_right f
 
 theorem inverse_function_unique {A B : Type} (f : A → B)
     (g h : B → A)
@@ -538,8 +544,11 @@ example {A B : Type} :
       swapPair := by
   apply inverse_function_unique swapPair
   · constructor
-    · exact inverseMap_left swapPair swapPair_bijective
-    · exact inverseMap_right swapPair swapPair_bijective
+    · intro x
+      exact inverseMap_left
+
+    · intro y
+      exact inverseMap_right swapPair
 
   · constructor
     · exact swapPair_twice
@@ -549,13 +558,13 @@ theorem inverseMap_compose {A B : Type} (f : A → B)
     (hf : Bijective f) :
     inverseMap f hf ∘ f = identity A := by
   ext x
-  exact inverseMap_left f hf x
+  exact inverseMap_left
 
 theorem compose_inverseMap {A B : Type} (f : A → B)
     (hf : Bijective f) :
     f ∘ inverseMap f hf = identity B := by
   ext y
-  exact inverseMap_right f hf y
+  exact inverseMap_right f
 
 theorem inverseMap_bijective {A B : Type} (f : A → B)
     (hf : Bijective f) :
@@ -568,13 +577,13 @@ theorem inverseMap_bijective {A B : Type} (f : A → B)
       rw [hxy]
 
 
-    rw [inverseMap_right f hf x,
-      inverseMap_right f hf y] at h
+    rw [inverseMap_right f,
+      inverseMap_right f] at h
     exact h
 
   · intro x
 
     exists (f x)
-    exact inverseMap_left f hf x
+    exact inverseMap_left
 
 end Ample

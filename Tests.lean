@@ -39,3 +39,4 @@ import Tests.Wlog
 import Tests.TacticContract
 
 import Tests.Set
+import Tests.SpecArguments

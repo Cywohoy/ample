@@ -15,6 +15,8 @@ theorem sameCardinality_refl (A : Type) :
   exists identity A
   exact identity_bijective A
 
+attribute [simp] sameCardinality_refl
+
 theorem sameCardinality_symm {A B : Type}
     (h : SameCardinality A B) :
     SameCardinality B A := by
@@ -484,7 +486,7 @@ noncomputable def cardinalityData (A : Type)
 noncomputable def cardinality (A : Type)
     (hA : IsFinite A) : Nat :=
   (cardinalityData A hA).val
-theorem cardinality_spec (A : Type)
+theorem cardinality_spec {A : Type}
     (hA : IsFinite A) :
     cardinal A = cardinality A hA := by
   exact (cardinalityData A hA).property
@@ -493,7 +495,7 @@ theorem cardinality_eq {A : Type} {n : Nat}
     (hA : IsFinite A)
     (hn : cardinal A = n) :
     cardinality A hA = n := by
-  exact finite_cardinal_unique (cardinality_spec A hA) hn
+  exact finite_cardinal_unique (cardinality_spec hA) hn
 
 example :
     cardinality (Fin 3) (fin_isFinite 3) = 3 := by

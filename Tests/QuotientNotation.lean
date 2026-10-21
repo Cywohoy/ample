@@ -66,7 +66,7 @@ example {A : Type} (R : Relation A)
   ext : 1
   exact equivalenceClass_eq R hR a b hab
 example {A : Type} (R : Relation A) (q : A / R) :
-    q = classOf R (quotientRepr R q) := quotientRepr_spec R q
+    q = classOf R (quotientRepr R q) := quotientRepr_spec q
 
 -- Overloading must preserve arithmetic precedence and associativity.
 example : 8 / 2 + 1 = 5 := by decide

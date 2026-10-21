@@ -17,7 +17,7 @@ theorem groupOrder_pos (G : Group A)
     (hG : IsFiniteGroup G) :
     0 < groupOrder G hG := by
   have hCard : cardinal A = groupOrder G hG :=
-    cardinality_spec A hG
+    cardinality_spec hG
 
   unpack (cardinal_eq_iff _ _).mp hCard with ⟨f, hf⟩
   suffices bound : (f G.id).val < groupOrder G hG by

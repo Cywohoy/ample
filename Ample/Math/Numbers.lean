@@ -182,6 +182,8 @@ theorem congruent_trans (n a b c : Int)
   exists (l + k)
   rw [hk, hl, Int.mul_add, Int.add_assoc]
 
+attribute [simp] congruent_refl
+
 theorem congruent_neg_five_two : -5 ≡ 2 [ZMOD 7] := by
   exists (-1)
 

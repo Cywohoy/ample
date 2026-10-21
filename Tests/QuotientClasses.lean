@@ -11,7 +11,7 @@ example {A : Type} (R : Relation A) (a : A) :
 -- A quotient element supplies all the evidence needed to select a representative.
 example {A : Type} (R : Relation A) (q : QuotientType R) :
     q = classOf R (quotientRepr R q) := by
-  exact quotientRepr_spec R q
+  exact quotientRepr_spec q
 
 -- A class-constant function has the prescribed value for any representative of the class.
 example {A B : Type} (R : Relation A) (hR : IsEquivalence R)
@@ -22,7 +22,7 @@ example {A B : Type} (R : Relation A) (hR : IsEquivalence R)
   let chosen := quotientRepr R q
   have hab : R chosen a := by
     apply (classOf_eq_iff R hR chosen a).mp
-    exact (quotientRepr_spec R q).symm.trans hqa
+    exact (quotientRepr_spec q).symm.trans hqa
   exact hf chosen a hab
 
 example {A : Type} (R : Relation A) (a : A) :
@@ -75,7 +75,7 @@ example (a b : Cardinal) (h : a = b) : a ≤ b := by
 -- Class invariance establishes the prescribed value at every representative.
 example (f : Int → Nat) (hf : ∀ a b, Congruent 2 a b → f a = f b) (a : Int) :
     quotientLift (Congruent 2) (congruent_equivalence 2) f hf (parityClass a) = f a := by
-  exact quotientLift_classOf (Congruent 2) (congruent_equivalence 2) f hf a
+  exact quotientLift_classOf
 
 -- Any representative selector yields the same lifted function, including
 -- quotients over a larger universe than the codomain.
@@ -90,7 +90,7 @@ example {A : Type 1} {B : Type}
     apply (classOf_eq_iff R hR _ a).mp
     exact (pick (classOf R a)).property.symm
   · intro a
-    exact quotientLift_classOf R hR f hf a
+    exact quotientLift_classOf
 
 -- A non-invariant map cannot be extended with the prescribed equation.
 example : ¬ ∃ F : Parity → Int, ∀ a : Int, F (parityClass a) = a := by
@@ -113,3 +113,29 @@ run_meta do
 #print axioms quotient_exists_classOf
 #print axioms quotientLiftData
 #print axioms quotientLift_unique
+
+-- Relation is a transparent carrier alias. Rewriting a representative equation
+-- must compose with computation rules whose arguments use a named quotient.
+private noncomputable def nextParity : Parity → Parity :=
+  quotientLift
+    (Congruent 2)
+    (congruent_equivalence 2)
+    (fun a => parityClass (a + 1))
+    (by
+      intro a b hab
+      apply (parityClass_eq_iff (a + 1) (b + 1)).mpr
+      unpack hab with ⟨k, hk⟩
+      exists k
+      arith)
+
+private theorem nextParity_class (a : Int) :
+    nextParity (parityClass a) = parityClass (a + 1) := by
+  exact quotientLift_classOf
+
+open scoped Ample Classical in
+example (q : Parity) : nextParity (nextParity q) = q := by
+  unpack quotient_exists_classOf (Congruent 2) q with ⟨a, ha⟩
+  rw [ha, nextParity_class, nextParity_class]
+  ext
+  exists 1
+  arith

@@ -31,7 +31,7 @@ example (n : Nat) (h : cardinal A = n) : cardinal A = n := by
 
 example (f : A → B) (hf : Bijective f) (y : B) :
     f (inverseMap f hf y) = y := by
-  exact inverseMap_right f hf y
+  exact inverseMap_right f
 
 example (hA : IsFinite A) : cardinal A = (cardinalityData A hA).val := by
   exact (cardinalityData A hA).property

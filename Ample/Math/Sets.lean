@@ -70,15 +70,25 @@ theorem subset_refl {A : Type} (S : Set A) :
   intro hx
   exact hx
 
+attribute [simp] subset_refl
+
 theorem subset_whole {A : Type} (S : Set A) :
     S ⊆ whole A := by
   intro x hx
   trivial
 
+attribute [simp] subset_whole
+
 theorem empty_subset {A : Type} (S : Set A) :
     ∅ ⊆ S := by
   intro x hx
   contradiction
+
+attribute [simp] empty_subset
+
+example {A : Type} (S : Set A) :
+    S ⊆ S := by
+  simp
 
 theorem subset_trans {A : Type} (S T U : Set A)
     (hST : S ⊆ T)

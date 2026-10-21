@@ -8,7 +8,7 @@ local infixr:90 (priority := high) " ∘ " => compose
 
 local notation:50 a " ≡ " b " [ZMOD " n "]" => Congruent n a b
 
-def Relation (A : Type _) := A → A → Prop
+abbrev Relation (A : Type _) := A → A → Prop
 
 def IsEquivalence {A : Type _} : Relation A → Prop :=
   fun R =>
@@ -140,7 +140,7 @@ theorem classOf_eq_iff {A : Type _} (R : Relation A)
     exact equivalenceClass_eq R hR a b hab
 
 def Parity := Int / Congruent 2
-def parityClass (a : Int) : Parity :=
+abbrev parityClass (a : Int) : Parity :=
   ⟦a⟧
 
 attribute [reducible] Parity
@@ -182,7 +182,7 @@ noncomputable def quotientRepr {A : Type _}
     (R : Relation A) (q : A / R) : A :=
   (quotientReprData R q).val
 theorem quotientRepr_spec {A : Type _}
-    (R : Relation A) (q : A / R) :
+    {R : Relation A} (q : A / R) :
     q = ⟦quotientRepr R q⟧ := by
   exact (quotientReprData R q).property
 
@@ -214,7 +214,7 @@ noncomputable def quotientLiftData {A B : Type _}
       let b := quotientRepr R ⟦a⟧
       have hRelation : R b a := by
         apply (classOf_eq_iff R hR b a).mp
-        exact (quotientRepr_spec R ⟦a⟧).symm
+        exact (quotientRepr_spec ⟦a⟧).symm
 
 
       exact hf b a hRelation }
@@ -227,23 +227,25 @@ noncomputable def quotientLift {A B : Type _}
     A / R → B :=
   (quotientLiftData R hR f hf).val
 theorem quotientLift_classOf {A B : Type _}
-    (R : Relation A)
-    (hR : IsEquivalence R)
-    (f : A → B)
-    (hf : ∀ a b, R a b → f a = f b)
-    (a : A) :
+    {R : Relation A}
+    {hR : IsEquivalence R}
+    {f : A → B}
+    {hf : ∀ a b, R a b → f a = f b}
+    {a : A} :
     quotientLift R hR f hf ⟦a⟧ = f a := by
   exact (quotientLiftData R hR f hf).property a
 
 noncomputable def parityRemainder : Parity → Int :=
-  quotientLift (Congruent 2) (congruent_equivalence 2)
-    (fun a => a % 2) congruent_two_same_remainder
+  quotientLift
+    (Congruent 2)
+    (congruent_equivalence 2)
+    (fun a => a % 2)
+    congruent_two_same_remainder
 
 theorem parityRemainder_class (a : Int) :
     parityRemainder (parityClass a) = a % 2 := by
-  exact quotientLift_classOf (Congruent 2)
-    (congruent_equivalence 2) (fun a => a % 2)
-    congruent_two_same_remainder a
+  expand
+  rw [quotientLift_classOf]
 
 example : parityRemainder (parityClass 0) = 0 := by
   rw [parityRemainder_class]

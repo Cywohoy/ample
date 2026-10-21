@@ -52,12 +52,12 @@ noncomputable def permutationGroup (A : Type) :
   inv_left := by
     intro p
     ext x : 2
-    exact inverseMap_left p.val p.property x
+    exact inverseMap_left (hf := p.property)
 
   inv_right := by
     intro p
     ext x : 2
-    exact inverseMap_right p.val p.property x
+    exact inverseMap_right p.val (hf := p.property)
 
 def swapThree (a b x : Fin 3) : Fin 3 :=
   if x = a then b else if x = b then a else x
