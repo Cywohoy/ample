@@ -202,9 +202,9 @@ example {A B : Type} {m n : Nat}
   have ha := congrArg Prod.fst hxy
   have hb := congrArg Prod.snd hxy
   ext : 1
-  · apply hA.left
+  · apply hA.inj
     exact ha
-  · apply hB.left
+  · apply hB.inj
     exact hb
 
 -- 자동 정리가 이미 참인 목표를 닫아 뒤의 증명 단계를 없애지는 않는다.

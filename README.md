@@ -200,12 +200,23 @@ python scripts/sync_ample.py --check
 ```
 
 The exporter belongs to the textbook repository. It accepts `--ample-root PATH`
-when the Ample checkout is elsewhere. The `main` branch exports only foundations modules;
-use `full-book` for group modules. Export synchronization requires Python;
+when the Ample checkout is elsewhere. Its source is the complete `savedLean` code
+in that repository, not the chapter layout of the separate `LeanFoundations` book.
+The current exporter owns ten foundations modules and two aggregate modules;
+it does not delete or overwrite group modules. Export synchronization requires Python;
 normal library builds and use do not require Python or the textbook directory.
 The generated mathematical files are committed in Ample so that every release
 is buildable on its own. Changes to their definitions or proofs should be made
 in the textbook and exported before committing both repositories.
+
+The textbook commits `scripts/ample-sync.json` alongside its source to record
+the last synchronized exports. Before writing any output, the exporter checks
+all owned files against that baseline. If an Ample file was edited independently,
+it refuses the entire update. Merge that work into the complete `savedLean`
+source first, then rerun the exporter; matching files can be recorded without
+being overwritten. There is no force-overwrite option. `--check` is read-only
+and verifies both exports and the synchronization record. This record adds no
+textbook dependency to Ample's build or CI.
 
 ## Validation
 

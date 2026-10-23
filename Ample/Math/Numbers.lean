@@ -64,7 +64,7 @@ theorem double_is_even (n : Nat) :
 theorem five_not_in_double_image :
     5 ∉ image double (whole Nat) := by
   intro hy
-  rcases hy with ⟨n, hn, hEq⟩
+  rcases hy with ⟨n, ⟨hn, hEq⟩⟩
 
 
   apply five_not_even
@@ -212,31 +212,31 @@ theorem congruent_iff_emod_eq (n a b : Int) :
 theorem congruent_add (n a b c d : Int)
     (hab : Congruent n a b) (hcd : Congruent n c d) :
     Congruent n (a + c) (b + d) := by
-  rcases hab with ⟨k, hk⟩
-  rcases hcd with ⟨l, hl⟩
+  unpack hab with ⟨k, hk⟩
+  unpack hcd with ⟨l, hl⟩
   exists k + l
   arith
 
 theorem congruent_mul (n a b c d : Int)
     (hab : Congruent n a b) (hcd : Congruent n c d) :
     Congruent n (a * c) (b * d) := by
-  rcases hab with ⟨k, hk⟩
-  rcases hcd with ⟨l, hl⟩
+  unpack hab with ⟨k, hk⟩
+  unpack hcd with ⟨l, hl⟩
   exists b * l + d * k + n * k * l
   arith
 
 theorem congruent_neg (n a b : Int)
     (hab : Congruent n a b) :
     Congruent n (-a) (-b) := by
-  rcases hab with ⟨k, hk⟩
+  unpack hab with ⟨k, hk⟩
   exists -k
   arith
 
 theorem congruent_sub (n a b c d : Int)
     (hab : Congruent n a b) (hcd : Congruent n c d) :
     Congruent n (a - c) (b - d) := by
-  rcases hab with ⟨k, hk⟩
-  rcases hcd with ⟨l, hl⟩
+  unpack hab with ⟨k, hk⟩
+  unpack hcd with ⟨l, hl⟩
   exists k - l
   arith
 
@@ -254,22 +254,22 @@ theorem congruent_pow (n a b : Int) (k : Nat)
 theorem congruent_cancel_add (n a b c : Int)
     (hab : Congruent n (a + c) (b + c)) :
     Congruent n a b := by
-  rcases hab with ⟨k, hk⟩
+  unpack hab with ⟨k, hk⟩
   exists k
   arith
 
 theorem congruent_weaken_product (n d a b : Int)
     (hab : Congruent (n * d) a b) :
     Congruent n a b := by
-  rcases hab with ⟨k, hk⟩
+  unpack hab with ⟨k, hk⟩
   exists d * k
   arith
 
 theorem congruent_of_dvd (m n a b : Int)
     (hd : Dvd.dvd n m) (hab : Congruent m a b) :
     Congruent n a b := by
-  rcases hd with ⟨d, hd⟩
-  rcases hab with ⟨k, hk⟩
+  unpack hd with ⟨d, hd⟩
+  unpack hab with ⟨k, hk⟩
   exists d * k
   rw [hd] at hk
   rw [hk, Int.mul_assoc]

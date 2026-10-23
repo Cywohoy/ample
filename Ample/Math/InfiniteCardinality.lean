@@ -45,7 +45,9 @@ theorem cardinal_le_iff (A B : Type) :
     cardinal A ≤ cardinal B ↔ ∃ f : A → B, Injective f := by
   constructor
   · intro h
-    rcases h with ⟨A', B', hA, hB, hf⟩
+    unpack h with ⟨A', hRemaining⟩
+    unpack hRemaining with ⟨B', hConditions⟩
+    rcases hConditions with ⟨hA, ⟨hB, hf⟩⟩
     exact cardinalityLE_transport hA hB hf
 
   · intro hf

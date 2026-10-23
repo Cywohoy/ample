@@ -33,7 +33,7 @@ theorem sameCardinality_trans {A B C : Type}
   exact bijective_compose f g hf hg
 
 theorem sameCardinality_equivalence : IsEquivalence SameCardinality := by
-  and_intros
+  constructor
   · exact sameCardinality_refl
   · intro A B hAB
     exact sameCardinality_symm hAB

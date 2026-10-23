@@ -9,25 +9,14 @@ local notation:50 a " ≡ " b " [MOD " n "]" => Congruent n a b
 
 abbrev Relation (A : Type _) := A → A → Prop
 
-def IsEquivalence {A : Type _} : Relation A → Prop :=
-  fun R =>
-    (∀ a, R a a) ∧
-    (∀ a b, R a b → R b a) ∧
-    (∀ a b c, R a b → R b c → R a c)
+structure IsEquivalence {A : Type _}
+    (R : Relation A) : Prop where
+  refl : ∀ a, R a a
+  symm : ∀ {a b}, R a b → R b a
+  trans : ∀ {a b c}, R a b → R b c → R a c
 
 namespace IsEquivalence
 
-theorem refl
-    {A : Type _} {R : Relation A} (hR : IsEquivalence R) (a : A) :
-    R a a := hR.left a
-
-theorem symm
-    {A : Type _} {R : Relation A} (hR : IsEquivalence R) {a b : A}
-    (hab : R a b) : R b a := hR.right.left a b hab
-
-theorem trans
-    {A : Type _} {R : Relation A} (hR : IsEquivalence R) {a b c : A}
-    (hab : R a b) (hbc : R b c) : R a c := hR.right.right a b c hab hbc
 
 @[ample_rewrite] theorem rewriteLaws
     {A : Type _} {R : Relation A} (hR : IsEquivalence R) :
@@ -38,10 +27,16 @@ end IsEquivalence
 
 theorem congruent_equivalence (n : Int) :
     IsEquivalence (Congruent n) := by
-  and_intros
+  constructor
   · exact congruent_refl n
-  · exact congruent_symm n
-  · exact congruent_trans n
+  · intro a b hab
+    apply congruent_symm n a b
+    exact hab
+
+  · intro a b c hab hbc
+    apply congruent_trans n a b c
+    · exact hab
+    · exact hbc
 
 example :
     ¬ IsEquivalence (fun a b : Nat => a ≤ b) := by
@@ -202,7 +197,7 @@ example :
 theorem congruent_two_same_remainder (a b : Int)
     (hab : a ≡ b [MOD 2]) :
     a % 2 = b % 2 := by
-  rcases hab with ⟨k, hk⟩
+  unpack hab with ⟨k, hk⟩
   arith
 
 noncomputable def quotientLiftData {A B : Type _}

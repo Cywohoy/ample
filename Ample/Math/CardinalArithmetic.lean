@@ -350,7 +350,7 @@ theorem sigmaAppend_bijective (F : Nat → Type) (n : Nat) :
     · simp [sigmaAppend, sigmaSplit]
 
   · intro p
-    rcases p with ⟨i, x⟩
+    unpack p with ⟨i, x⟩
     induction i using Fin.lastCases with
     | last => simp [sigmaAppend, sigmaSplit]
     | cast i => simp [sigmaAppend, sigmaSplit]
@@ -489,12 +489,14 @@ theorem bool_cardinal : cardinal Bool = 2 := by
 
   · intro i
     have hi : i.val = 0 ∨ i.val = 1 := by arith
-    rcases hi with hi | hi
-    · ext
-      simp [hi]
+    cases hi with
+    | inl hi =>
+        ext
+        simp [hi]
 
-    · ext
-      simp [hi]
+    | inr hi =>
+        ext
+        simp [hi]
 
 theorem cardinal_set (A : Type) :
     cardinal (Set A) = (2 : Cardinal) ^ cardinal A := by

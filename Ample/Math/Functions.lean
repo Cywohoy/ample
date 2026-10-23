@@ -39,7 +39,7 @@ theorem image_mono {A B : Type} (f : A → B) (S T : Set A)
     (hST : S ⊆ T) :
     image f S ⊆ image f T := by
   intro y hy
-  rcases hy with ⟨x, hxS, hxy⟩
+  rcases hy with ⟨x, ⟨hxS, hxy⟩⟩
 
 
   exists x
@@ -52,7 +52,7 @@ theorem image_mono {A B : Type} (f : A → B) (S T : Set A)
 example :
     1 ∉ image (fun _ : Nat => 0) (whole Nat) := by
   intro hy
-  rcases hy with ⟨n, hn, hEq⟩
+  rcases hy with ⟨n, ⟨hn, hEq⟩⟩
   contradiction
 
 def preimage {A B : Type} (f : A → B) (T : Set B) : Set A :=
@@ -104,7 +104,7 @@ theorem preimage_image_of_injective {A B : Type} (f : A → B)
     preimage f (image f S) = S := by
   apply set_eq_of_subset
   · intro x hx
-    rcases hx with ⟨y, hy, hxy⟩
+    rcases hx with ⟨y, ⟨hy, hxy⟩⟩
     have hyx : y = x := by
       exact hf y x hxy
 
@@ -126,26 +126,24 @@ theorem identity_surjective (A : Type) :
   intro y
   exists y
 
-def Bijective {A B : Type} : (A → B) → Prop :=
-  fun f => Injective f ∧ Surjective f
-
-namespace Bijective
-
-theorem inj {A B : Type}
-    {f : A → B} (hf : Bijective f) : Injective f :=
-    hf.left
-
-theorem surj {A B : Type}
-    {f : A → B} (hf : Bijective f) : Surjective f :=
-    hf.right
-
-end Bijective
-
-theorem identity_bijective (A : Type) :
-    Bijective (identity A) := by
+theorem identity_inj_and_surj (A : Type) :
+    Injective (identity A) ∧ Surjective (identity A) := by
   constructor
   · exact identity_injective A
   · exact identity_surjective A
+
+structure Bijective {A B : Type}
+    (f : A → B) : Prop where
+  inj : Injective f
+  surj : Surjective f
+
+theorem identity_bijective (A : Type) :
+    Bijective (identity A) := by
+  have h := identity_inj_and_surj A
+  unpack h with ⟨hinj, hsurj⟩
+  constructor
+  · exact hinj
+  · exact hsurj
 
 def evens : Set Nat := fun n => ∃ k : Nat, n = 2 * k
 theorem double_in_evens (n : Nat) :
@@ -273,7 +271,7 @@ def toImage {A B : Type} (f : A → B) (x : A) :
 theorem toImage_surjective {A B : Type} (f : A → B) :
     Surjective (toImage f) := by
   intro y
-  rcases y.property with ⟨x, hx, hxy⟩
+  rcases y.property with ⟨x, ⟨hx, hxy⟩⟩
   exists x
   ext
   exact hxy

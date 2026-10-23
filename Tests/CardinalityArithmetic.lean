@@ -50,9 +50,9 @@ example (hA : cardinal A = m) (hB : cardinal B = n) :
     expand at hxy
     injections
     ext : 1
-    · apply hA.left
+    · apply hA.inj
       assumption
-    · apply hB.left
+    · apply hB.inj
       arith
   · rintro ⟨yA, yB⟩
     exists (inverseMap fA hA yA, inverseMap fB hB yB)

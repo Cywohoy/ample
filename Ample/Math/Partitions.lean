@@ -4,39 +4,21 @@ import Ample.Math.Relations
 open scoped Classical
 namespace Ample
 
-def IsPartition {A : Type} : Set (Set A) → Prop :=
-  fun blocks =>
-    (∀ S, S ∈ blocks → ∃ x, x ∈ S) ∧
-    (∀ x, ∃ S, S ∈ blocks ∧ x ∈ S) ∧
-    (∀ S T, S ∈ blocks → T ∈ blocks →
-      (∃ x, x ∈ S ∧ x ∈ T) → S = T)
-
-namespace IsPartition
-theorem nonempty {A : Type} {blocks : Set (Set A)}
-    (h : IsPartition blocks) (S : Set A)
-    (hS : S ∈ blocks) : ∃ x, x ∈ S := by
-  exact h.left S hS
-
-theorem cover {A : Type} {blocks : Set (Set A)}
-    (h : IsPartition blocks) (x : A) :
-    ∃ S, S ∈ blocks ∧ x ∈ S := by
-  exact h.right.left x
-
-theorem eq_of_in {A : Type} {blocks : Set (Set A)}
-    (h : IsPartition blocks) (S T : Set A)
-    (hS : S ∈ blocks) (hT : T ∈ blocks)
-    (hmeet : ∃ x, x ∈ S ∧ x ∈ T) : S = T := by
-  exact h.right.right S T hS hT hmeet
-end IsPartition
+structure IsPartition {A : Type}
+    (blocks : Set (Set A)) : Prop where
+  nonempty : ∀ S, S ∈ blocks → ∃ x, x ∈ S
+  cover : ∀ x, ∃ S, S ∈ blocks ∧ x ∈ S
+  eq_of_in : ∀ S T, S ∈ blocks → T ∈ blocks →
+    (∃ x, x ∈ S ∧ x ∈ T) → S = T
 
 theorem equivalenceClasses_partition {A : Type}
     (R : Relation A)
     (hR : IsEquivalence R) :
     IsPartition
       (fun S => ∃ a, S = equivalenceClass R a) := by
-  and_intros
+  constructor
   · intro S hS
-    rcases hS with ⟨a, ha⟩
+    unpack hS with ⟨a, ha⟩
     rw [ha]
     exists a
     exact hR.refl a
@@ -48,9 +30,9 @@ theorem equivalenceClasses_partition {A : Type}
     · exact hR.refl x
 
   · intro S T hS hT hmeet
-    rcases hS with ⟨a, ha⟩
-    rcases hT with ⟨b, hb⟩
-    rcases hmeet with ⟨x, hxS, hxT⟩
+    unpack hS with ⟨a, ha⟩
+    unpack hT with ⟨b, hb⟩
+    rcases hmeet with ⟨x, ⟨hxS, hxT⟩⟩
     rw [ha] at hxS
     rw [hb] at hxT
     rw [ha, hb]
@@ -69,18 +51,18 @@ theorem sameBlock_equivalence {A : Type}
     (blocks : Set (Set A))
     (h : IsPartition blocks) :
     IsEquivalence (sameBlock blocks) := by
-  and_intros
+  constructor
   · intro x
-    rcases h.cover x with ⟨S, hS, hx⟩
+    rcases h.cover x with ⟨S, ⟨hS, hx⟩⟩
     exists S
 
   · intro x y hxy
-    rcases hxy with ⟨S, hS, hx, hy⟩
+    rcases hxy with ⟨S, ⟨hS, ⟨hx, hy⟩⟩⟩
     exists S
 
   · intro x y z hxy hyz
-    rcases hxy with ⟨S, hS, hx, hy⟩
-    rcases hyz with ⟨T, hT, hyT, hz⟩
+    rcases hxy with ⟨S, ⟨hS, ⟨hx, hy⟩⟩⟩
+    rcases hyz with ⟨T, ⟨hT, ⟨hyT, hz⟩⟩⟩
     have hST : S = T := by
       apply h.eq_of_in S T hS hT
       exists y
@@ -96,7 +78,7 @@ theorem sameBlock_class {A : Type} (blocks : Set (Set A))
   ext x
   constructor
   · intro hx
-    rcases hx with ⟨T, hT, hx, haT⟩
+    rcases hx with ⟨T, ⟨hT, ⟨hx, haT⟩⟩⟩
     have hTS : T = S := by
       apply h.eq_of_in T S hT hS
       exists a
