@@ -1,4 +1,9 @@
 import Tests.Arithmetic
+import Tests.ArithmeticCongruence
+import Tests.ArithmeticPreparation
+import Tests.RelationRewrite
+import Tests.RelationRewriteState
+import Tests.ApplyFun
 import Tests.ArithmeticDivisionBounds
 import Tests.ArithmeticEvenProducts
 import Tests.ArithmeticModular

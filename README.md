@@ -26,8 +26,14 @@ Opening `Ample` makes the mathematical names and scoped tactics available.
 `open scoped Ample.Auto` enables presentation normalization before and after proof steps.
 Use `open scoped Classical` in scopes that should use classical logic by default.
 
-`ext` and `indisc` apply one comparison layer by default, in goals and hypotheses.
-Use `ext!` and `indisc!` to repeat comparisons, or specify a depth with `ext : 2` or `indisc : 2 at h`.
+`apply_fun (fun x => x.val) at h` applies the specified function to both sides of an equality.
+Add `with valueEquality` to retain the original hypothesis and name its image.
+On an equality goal, `apply_fun f using hf` requires an injectivity proof `hf`;
+without `using`, a matching local proof is reused or injectivity remains a goal.
+Function applications and projections are computed without selecting mathematical comparison rules.
+
+`ext` applies one comparison layer by default.
+Use `ext!` to repeat comparisons, or specify a depth with `ext : 2`.
 The depth notation for congruence is likewise `congr : 2`.
 One registered mathematical comparison counts as one layer: for sets, `set_ext` compares membership conditions up to logical equivalence.
 Iff theorems registered with `ample_compare` connect equalities and their comparison conditions in both directions.
@@ -50,6 +56,55 @@ theorem remainder_of_fin (m : Nat) (i : Fin m) : i.val % m = i.val := by
   suffices bound : i.val < m by arith
   exact i.isLt
 ```
+
+### Arithmetic and relation rewrites
+
+`arith` handles natural-number and integer arithmetic with bounded, registered
+rules. `Ample.Math.Numbers` connects integer congruence (`a ≡ b [MOD n]`) to
+divisibility and remainders, and registers addition, subtraction, multiplication,
+negation, and natural powers. It does not decide arbitrary number-theoretic
+existence statements or cancel factors without the necessary assumptions.
+
+Direct registered one-premise bridges are checked against existing hypotheses
+before search. Search then tries structural arithmetic rules. On failure it restores the
+state, prepares relevant facts from the original hypotheses once, removes
+duplicates, and retries. `ample.arith.maxPreparedFacts` defaults to 64; prepared
+facts do not recursively produce more prepared facts. The two stages have
+local heartbeat budgets and respect the enclosing heartbeat/recursion limits.
+A failed `arith` leaves the proof state unchanged.
+
+With a relation proof `h : R a b`, `rw [h]` can rewrite a proposition only if it
+constructs an iff between the old and new propositions. It composes registered
+`Rewriting.Action`/`Action2` certificates; it never changes the meaning of `Eq`.
+Symmetry and transitivity suffice to rewrite a single argument of `R` itself.
+Operations inside that argument need their own preservation certificates.
+
+```lean
+example (n a b : Int) (h : a ≡ b [MOD n]) :
+    a * a ≡ b * b [MOD n] := by
+  rw [h]
+  exact congruent_refl n _
+```
+
+Register laws/actions using `@[ample_rewrite]`, or provide an explicit
+`RewriteContext R P P` with `rw [h] using context`. Its optional `Condition`
+becomes a proof obligation when it is not already known. Conditions precede the
+rewritten continuation. `←`, `at h`, `at *`, selected locations, and native
+occurrence configurations remain available. Later rules in a rewrite sequence
+can put their new conditions before conditions from earlier rules; each condition
+keeps the context in which its certificate was constructed.
+A source relation proof is held
+fixed across selected locations even when one location is that proof itself.
+Dependent hypotheses follow Lean's usual replacement behavior: the original
+hypothesis can be retained when its type is needed by later declarations.
+
+The automatic engine composes unary and binary operations, logical connectives,
+and quantifiers. It defaults to depth 10 and 128 certificate/comparison steps
+(`ample.rewrite.maxDepth`, `ample.rewrite.maxSteps`). An explicit context is the
+escape hatch for unsupported operations or deeper contexts. Errors identify
+missing preserving actions; `set_option trace.Ample.rewrite true` shows search
+details. Failure restores all selected hypotheses, goals, and pending siblings.
+Type-valued relations with proof-relevant inverse laws are outside this API.
 
 Library documentation, hover help, diagnostics, and implementation comments are written in English.
 The accompanying Korean textbook is maintained separately.
@@ -84,6 +139,7 @@ is a separate process; see its [inclusion criteria](https://reservoir.lean-lang.
 | --- | --- |
 | `Ample.Tactic` | Forward and backward inference, equality comparison, unfolding, and automation |
 | `Ample.Tactic.Auto` | Optional normalization of proof-state presentation |
+| `Ample.Tactic.ApplyFun` | Explicit application of a function to an equality |
 | `Ample.Tactic.Comparison` | Registered iff theorems for equality comparison |
 | `Ample.Tactic.Arithmetic` | Natural-number and integer arithmetic via `arith` |
 | `Ample.Tactic.GroupRules` | Registration of group laws for group calculation |

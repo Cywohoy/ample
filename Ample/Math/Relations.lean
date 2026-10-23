@@ -4,9 +4,8 @@ import Ample.Math.Numbers
 open scoped Classical
 
 namespace Ample
-local infixr:90 (priority := high) " ∘ " => compose
 
-local notation:50 a " ≡ " b " [ZMOD " n "]" => Congruent n a b
+local notation:50 a " ≡ " b " [MOD " n "]" => Congruent n a b
 
 abbrev Relation (A : Type _) := A → A → Prop
 
@@ -29,6 +28,11 @@ theorem symm
 theorem trans
     {A : Type _} {R : Relation A} (hR : IsEquivalence R) {a b c : A}
     (hab : R a b) (hbc : R b c) : R a c := hR.right.right a b c hab hbc
+
+@[ample_rewrite] theorem rewriteLaws
+    {A : Type _} {R : Relation A} (hR : IsEquivalence R) :
+    Rewriting.Laws R :=
+  ⟨hR.refl, hR.symm, hR.trans⟩
 
 end IsEquivalence
 
@@ -81,7 +85,7 @@ def quotientSet {A : Type _} (R : Relation A) :
     Set (Set A) :=
   fun S => ∃ a : A, S = equivalenceClass R a
 
-theorem equivalenceClass_mem_quotientSet {A : Type _}
+theorem equivalenceClass_in_quotientSet {A : Type _}
     (R : Relation A) (a : A) :
     equivalenceClass R a ∈ quotientSet R := by
   exists a
@@ -108,7 +112,7 @@ attribute [scoped delab app.Ample.QuotientType] Notation.delabQuotientType
 def classOf {A : Type _} (R : Relation A) (a : A) :
     A / R :=
   { val := equivalenceClass R a
-    property := equivalenceClass_mem_quotientSet R a }
+    property := equivalenceClass_in_quotientSet R a }
 
 scoped notation:max (name := classOfNotation) "⟦" a "⟧" => classOf _ a
 
@@ -128,7 +132,7 @@ theorem classOf_eq_iff {A : Type _} (R : Relation A)
     (⟦a⟧ : A / R) = ⟦b⟧ ↔ R a b := by
   constructor
   · intro h
-    indisc at h with hSets
+    apply_fun (fun x => x.val) at h with hSets
     have ha : a ∈ equivalenceClass R a := by
       exact hR.refl a
 
@@ -146,7 +150,7 @@ abbrev parityClass (a : Int) : Parity :=
 attribute [reducible] Parity
 
 theorem parityClass_eq_iff (a b : Int) :
-    parityClass a = parityClass b ↔ a ≡ b [ZMOD 2] := by
+    parityClass a = parityClass b ↔ a ≡ b [MOD 2] := by
   exact classOf_eq_iff (Congruent 2)
     (congruent_equivalence 2) a b
 
@@ -159,8 +163,8 @@ theorem parityClass_zero_two :
 
 example (a b : Int)
     (h : parityClass a = parityClass b) :
-    a ≡ b [ZMOD 2] := by
-  indisc at h
+    a ≡ b [MOD 2] := by
+  apply (parityClass_eq_iff a b).mp
   exact h
 
 theorem quotient_exists_classOf {A : Type _}
@@ -196,7 +200,7 @@ example :
   contradiction
 
 theorem congruent_two_same_remainder (a b : Int)
-    (hab : a ≡ b [ZMOD 2]) :
+    (hab : a ≡ b [MOD 2]) :
     a % 2 = b % 2 := by
   rcases hab with ⟨k, hk⟩
   arith

@@ -29,7 +29,7 @@ theorem fin_injective_surjective (n : Nat)
       apply hf
       ext
       apply eraseIndex_injective (hne x) (hne y)
-      indisc at hxy
+      apply_fun (fun x => x.val) at hxy
       exact hxy
 
 
@@ -270,7 +270,7 @@ theorem finSum_bijective (m n : Nat) :
     | inl a =>
       cases y with
       | inl b =>
-        indisc at hxy with hval
+        apply_fun (fun x => x.val) at hxy with hval
         have hab : a = b := by
           ext
           exact hval
@@ -278,17 +278,17 @@ theorem finSum_bijective (m n : Nat) :
         rw [hab]
 
       | inr b =>
-        indisc at hxy with hval
+        apply_fun (fun x => x.val) at hxy with hval
         arith
 
     | inr a =>
       cases y with
       | inl b =>
-        indisc at hxy with hval
+        apply_fun (fun x => x.val) at hxy with hval
         arith
 
       | inr b =>
-        indisc at hxy with hval
+        apply_fun (fun x => x.val) at hxy with hval
         have hab : a = b := by
           ext
           arith

@@ -20,10 +20,10 @@ def positives : Set Nat := positive
 instance {A : Type _} : Membership A (Set A) where
   mem S x := S x
 
-@[simp] theorem mem_def {A : Type} (S : Set A) (x : A) :
+@[simp] theorem in_def {A : Type} (S : Set A) (x : A) :
     (x ∈ S) = S x := rfl
 
-attribute [ample_arith_simp] mem_def positives positive
+attribute [ample_arith_simp] in_def positives positive
 
 example (n : Nat)
     (h : 0 < n) :
@@ -192,9 +192,8 @@ example {A : Type} (S T : Set A)
 example {A : Type} (S T : Set A)
     (hST : S = T) :
     ∀ x, x ∈ S ↔ x ∈ T := by
-  indisc at hST with hmem
-  -- hmem : ∀ x, x ∈ S ↔ x ∈ T
-  exact hmem
+  intro x
+  rw [hST]
 
 def inter {A : Type} (S T : Set A) : Set A :=
   fun x => x ∈ S ∧ x ∈ T

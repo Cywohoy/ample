@@ -7,7 +7,6 @@ namespace Ample
 
 variable {A B : Type}
 
-local infixr:90 (priority := high) " ∘ " => compose
 
 def BinaryOp (A : Type) := A → A → A
 def natAdd : BinaryOp Nat := fun a b => a + b

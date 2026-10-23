@@ -1,6 +1,7 @@
 import Ample.Tactic.Normalize
 import Ample.Tactic.ArithmeticRules
 import Ample.Tactic.ArithmeticSearch
+import Ample.Tactic.ArithmeticFacts
 import Ample.Tactic.Trace
 import Ample.Tactic.Unfold
 import Ample.Tactic.Injection
@@ -36,6 +37,7 @@ def evalArithmeticOmega : Tactic := fun stx => do
 
 /-- `arith` proves goals about natural numbers and integers using local hypotheses and registered arithmetic rules.
 It supports linear arithmetic, polynomial identities, product bounds, division, remainders, divisibility, and `Fin` bounds.
+Imported domain rules also support integer congruence: ring operations, natural powers, divisibility, and remainder bridges.
 Required sign and range conditions must be available or derivable. Group laws are not included.
 
 For example, it proves `2 * n ≠ 5` for `n : Int`.
@@ -58,17 +60,46 @@ private def runAmpleArith : TacticM Unit := do
        all_goals (first | omega | grind only [$grindRules:ident]))
     | grind only [$grindRules:ident]))
 
+-- Stage limits count allocations without resetting Lean's overall heartbeat
+-- budget. Only exhaustion of our own smaller limit is recoverable here.
+private def tryArithmeticStage (budget : Nat) (prepare : Bool) : TacticM Bool := do
+  let saved ← saveState
+  let ctx ← readThe Core.Context
+  let start ← IO.getNumHeartbeats
+  let localLimit := start - ctx.initHeartbeats + budget
+  let ownLimit := ctx.maxHeartbeats == 0 || localLimit < ctx.maxHeartbeats
+  let limit := if ownLimit then localLimit else ctx.maxHeartbeats
+  tryCatchRuntimeEx
+    (withTheReader Core.Context (fun c => { c with maxHeartbeats := limit }) do
+      if prepare then replaceMainGoal [← Automation.prepareArithmeticFacts (← getMainGoal)]
+      runAmpleArith
+      return true)
+    (fun e => do
+      saved.restore
+      if e.isRuntime && !(e.isMaxHeartbeat && ownLimit) then throw e
+      -- Even if our smaller limit fired, a concurrently exhausted outer budget
+      -- must remain visible to the caller.
+      if e.isMaxHeartbeat && ctx.maxHeartbeats != 0 &&
+          (← IO.getNumHeartbeats) - ctx.initHeartbeats >= ctx.maxHeartbeats then throw e
+      return false)
+
 @[tactic ampleArith]
 def evalAmpleArith : Tactic := fun _ => do
   let saved ← saveState
   let goal ← getMainGoal
-  try
-    runAmpleArith
+  tryCatchRuntimeEx (do
+    Automation.validateArithmeticPreparationRules
+    if ← Automation.closeByArithmeticBridge goal then replaceMainGoal []
+    else if (← labelled `ample_arith_prepare).isEmpty then runAmpleArith
+    else unless ← tryArithmeticStage 2000000 false do
+      unless ← tryArithmeticStage 6000000 true do
+        throwError "No arithmetic derivation was found within the staged search limits."
     Automation.traceCompletedProof `Ample.arith goal
       (← labelled `ample_arith_apply)
-      "Arithmetic calculation using the registered rules and local hypotheses."
-  catch e =>
+      "Arithmetic calculation using the registered rules and local hypotheses.")
+    (fun e => do
     saved.restore
-    throwError "Arithmetic could not close the goal. Check the required bounds, signs, and nonzero conditions; then use an explicit intermediate statement if needed.\n{e.toMessageData}"
+    if e.isRuntime then throw e
+    throwError "Arithmetic could not close the goal. Check the required bounds, signs, and nonzero conditions; then use an explicit intermediate statement if needed.\n{e.toMessageData}")
 
 end Ample

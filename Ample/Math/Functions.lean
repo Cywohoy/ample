@@ -148,13 +148,13 @@ theorem identity_bijective (A : Type) :
   · exact identity_surjective A
 
 def evens : Set Nat := fun n => ∃ k : Nat, n = 2 * k
-theorem double_mem_evens (n : Nat) :
+theorem double_in_evens (n : Nat) :
     double n ∈ evens := by
   exists n
 
 def aboveTwo : Set Nat := fun n => 2 < n
 def shiftTwo (n : Nat) : Nat := n + 2
-theorem shiftTwo_mem_aboveTwo (n : Nat)
+theorem shiftTwo_in_aboveTwo (n : Nat)
     (hn : n ∈ positives) :
     shiftTwo n ∈ aboveTwo := by
   apply Nat.add_lt_add_right (k := 2)
@@ -182,13 +182,13 @@ example :
 def doubleToEvens (n : Nat) : Elem evens :=
   { val := double n
     property := by
-      exact double_mem_evens n }
+      exact double_in_evens n }
 
 def shiftTwoOnPositives (s : Elem positives) :
     Elem aboveTwo :=
   { val := shiftTwo s.val
     property := by
-      exact shiftTwo_mem_aboveTwo s.val s.property }
+      exact shiftTwo_in_aboveTwo s.val s.property }
 
 example :
     (shiftTwoOnPositives oneInPositives).val = 3 := by
@@ -215,7 +215,7 @@ example {A : Type}
     (S : Set A) (s t : Elem S)
     (h : s = t) :
     s.val = t.val := by
-  indisc at h
+  apply_fun (fun x => x.val) at h
   exact h
 
 theorem elem_val_injective {A : Type} (S : Set A) :
@@ -229,7 +229,7 @@ theorem doubleToEvens_bijective :
   constructor
   · intro x y hxy
     apply double_injective
-    indisc at hxy
+    apply_fun (fun x => x.val) at hxy
     exact hxy
 
   · intro y
@@ -281,7 +281,7 @@ theorem toImage_surjective {A B : Type} (f : A → B) :
 def compose {A B C : Type}
     (g : B → C) (f : A → B) : A → C :=
   fun x => g (f x)
-local infixr:90 (priority := high) " ∘ " => compose
+scoped infixr:90 (priority := high) " ∘ " => compose
 
 example {A B C : Type}
     (f : A → B) (g : B → C) (x : A) :
@@ -376,7 +376,8 @@ example {A B : Type} (a c : A) (b d : B)
 example {A B : Type} (a c : A) (b d : B)
     (h : (a, b) = (c, d)) :
     (b, a) = (d, c) := by
-  indisc at h with ha hb
+  apply_fun (fun p => p.1) at h with ha
+  apply_fun (fun p => p.2) at h with hb
   rw [ha, hb]
 
 def setProduct {A B : Type}
@@ -403,7 +404,8 @@ theorem productMap_injective {A B C D : Type}
     Injective (productMap f g) := by
   intro x y hxy
 
-  indisc at hxy with hfirst hsecond
+  apply_fun (fun p => p.1) at hxy with hfirst
+  apply_fun (fun p => p.2) at hxy with hsecond
   ext
   · exact hf x.1 y.1 hfirst
   · exact hg x.2 y.2 hsecond

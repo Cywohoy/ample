@@ -1,4 +1,5 @@
 import Ample.Tactic
+import Ample.Math.Sets
 open scoped Ample
 
 example (P : Nat → Prop) (x : Nat) (h : P x) : P x ∧ P x := by
@@ -57,5 +58,26 @@ example (P : Nat → Prop) (x : Nat) (h : P x) : P x := by
   unfold Q at h ⊢
   guard_hyp h :ₛ P x
   exact h
+
+end
+
+-- An explicit carrier annotation survives lambda elaboration.
+example (x : Nat) : True := by
+  set S : Ample.Set Nat := fun n => n = x with hS
+  guard_hyp S :ₛ Ample.Set Nat := fun n => n = x
+  guard_hyp hS : S = (fun n => n = x)
+  have hx : x ∈ S := by rfl
+  trivial
+
+section
+open scoped Ample.Auto
+
+-- Membership must remain available after normalization as well.
+example : True := by
+  set S : Ample.Set Nat := fun x => x = 0
+  guard_hyp S :ₛ Ample.Set Nat := fun x => x = 0
+  have h : 0 ∈ S := by rfl
+  guard_hyp h :ₛ 0 ∈ S
+  trivial
 
 end

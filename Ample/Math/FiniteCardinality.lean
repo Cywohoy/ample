@@ -5,7 +5,6 @@ import Ample.Tactic.Cardinality
 open scoped Classical
 
 namespace Ample
-local infixr:90 (priority := high) " ∘ " => compose
 
 def SameCardinality : Type → Type → Prop :=
   fun A B => ∃ f : A → B, Bijective f
@@ -155,7 +154,7 @@ theorem threeNumbers_cardinal :
   · intro i j hij
 
     expand at hij
-    indisc at hij
+    apply_fun (fun x => x.val) at hij
     ext
     arith
 
@@ -550,7 +549,8 @@ theorem finProduct_bijective (m n : Nat) :
   constructor
   · intro x y hxy
 
-    indisc : 2 at hxy
+    apply_fun (fun p => p.1.val) at hxy with hmod
+    apply_fun (fun p => p.2.val) at hxy with hdiv
     arith
 
   · intro y

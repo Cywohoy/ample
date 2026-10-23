@@ -62,12 +62,16 @@ def finishTransformGoals (goals : List MVarId) : TacticM (List MVarId) := do
 results. Zero results do not advance postprocessing to a pending sibling. -/
 def runTransform (action : TacticM Unit) : TacticM Unit := do
   let saved ← saveState
-  try
-    focus do
+  tryCatchRuntimeEx
+    (focus do
       action
-      setGoals (← finishTransformGoals (← getUnsolvedGoals))
-  catch error =>
-    saved.restore
-    throw error
+      setGoals (← finishTransformGoals (← getUnsolvedGoals)))
+    (fun error => do
+      -- An abort means the elaborator already logged its diagnostic. Roll back
+      -- the proof state without erasing the error that explains that abort.
+      let messages ← Core.getMessageLog
+      saved.restore
+      if isAbortTacticException error then Core.setMessageLog messages
+      throw error)
 
 end Ample.Automation

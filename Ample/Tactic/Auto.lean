@@ -1,4 +1,5 @@
 import Ample.Tactic.Normalize
+import Ample.Tactic.ApplyFun
 import Ample.Tactic.Unfold
 import Ample.Tactic.Injection
 import Ample.Tactic.Ext

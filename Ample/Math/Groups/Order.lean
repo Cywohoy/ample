@@ -6,7 +6,6 @@ open scoped Classical
 
 namespace Ample
 variable {A B C : Type} {m n : Nat}
-local infixr:90 (priority := high) " ∘ " => compose
 
 def IsFiniteGroup : Group A → Prop := fun _G => IsFinite A
 noncomputable def groupOrder (G : Group A)

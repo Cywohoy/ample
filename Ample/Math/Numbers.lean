@@ -5,7 +5,6 @@ import Ample.Tactic.Arithmetic
 open scoped Classical
 
 namespace Ample
-local infixr:90 (priority := high) " ∘ " => compose
 
 theorem zero_add_induction (n : Nat) : 0 + n = n := by
   induction n with
@@ -155,28 +154,28 @@ example :
 
 def Congruent (n : Int) : Int → Int → Prop :=
   fun a b => ∃ k : Int, a = b + n * k
-local notation:50 a " ≡ " b " [ZMOD " n "]" =>
+local notation:50 a " ≡ " b " [MOD " n "]" =>
   Congruent n a b
 
 theorem preliminaries_congruent_twenty_three_two :
-    23 ≡ 2 [ZMOD 7] := by
+    23 ≡ 2 [MOD 7] := by
   exists 3
 
-theorem congruent_refl (n a : Int) : a ≡ a [ZMOD n] := by
+theorem congruent_refl (n a : Int) : a ≡ a [MOD n] := by
   exists 0
   rw [Int.mul_zero, Int.add_zero]
 
 theorem congruent_symm (n a b : Int)
-    (h : a ≡ b [ZMOD n]) :
-    b ≡ a [ZMOD n] := by
+    (h : a ≡ b [MOD n]) :
+    b ≡ a [MOD n] := by
   unpack h with ⟨k, hk⟩
   exists (-k)
   rw [hk, Int.mul_neg, Int.add_neg_cancel_right]
 
 theorem congruent_trans (n a b c : Int)
-    (hab : a ≡ b [ZMOD n])
-    (hbc : b ≡ c [ZMOD n]) :
-    a ≡ c [ZMOD n] := by
+    (hab : a ≡ b [MOD n])
+    (hbc : b ≡ c [MOD n]) :
+    a ≡ c [MOD n] := by
   unpack hab with ⟨k, hk⟩
   unpack hbc with ⟨l, hl⟩
   exists (l + k)
@@ -184,18 +183,158 @@ theorem congruent_trans (n a b c : Int)
 
 attribute [simp] congruent_refl
 
-theorem congruent_neg_five_two : -5 ≡ 2 [ZMOD 7] := by
+theorem congruent_neg_five_two : -5 ≡ 2 [MOD 7] := by
   exists (-1)
 
 theorem congruent_twenty_three_neg_five :
-    23 ≡ -5 [ZMOD 7] := by
+    23 ≡ -5 [MOD 7] := by
   apply congruent_trans 7 23 2 (-5)
   · exact preliminaries_congruent_twenty_three_two
   · exact congruent_symm 7 (-5) 2 congruent_neg_five_two
 
+theorem congruent_iff_dvd_sub (n a b : Int) :
+    Congruent n a b ↔ n ∣ a - b := by
+  constructor
+  · intro h
+    unpack h with ⟨k, hk⟩
+    exists k
+    arith
+  · intro h
+    unpack h with ⟨k, hk⟩
+    exists k
+    arith
+
+theorem congruent_iff_emod_eq (n a b : Int) :
+    Congruent n a b ↔ a % n = b % n := by
+  exact (congruent_iff_dvd_sub n a b).trans
+    (Int.dvd_iff_emod_eq_zero.trans Int.emod_eq_emod_iff_emod_sub_eq_zero.symm)
+
+theorem congruent_add (n a b c d : Int)
+    (hab : Congruent n a b) (hcd : Congruent n c d) :
+    Congruent n (a + c) (b + d) := by
+  rcases hab with ⟨k, hk⟩
+  rcases hcd with ⟨l, hl⟩
+  exists k + l
+  arith
+
+theorem congruent_mul (n a b c d : Int)
+    (hab : Congruent n a b) (hcd : Congruent n c d) :
+    Congruent n (a * c) (b * d) := by
+  rcases hab with ⟨k, hk⟩
+  rcases hcd with ⟨l, hl⟩
+  exists b * l + d * k + n * k * l
+  arith
+
+theorem congruent_neg (n a b : Int)
+    (hab : Congruent n a b) :
+    Congruent n (-a) (-b) := by
+  rcases hab with ⟨k, hk⟩
+  exists -k
+  arith
+
+theorem congruent_sub (n a b c d : Int)
+    (hab : Congruent n a b) (hcd : Congruent n c d) :
+    Congruent n (a - c) (b - d) := by
+  rcases hab with ⟨k, hk⟩
+  rcases hcd with ⟨l, hl⟩
+  exists k - l
+  arith
+
+theorem congruent_pow (n a b : Int) (k : Nat)
+    (hab : Congruent n a b) :
+    Congruent n (a ^ k) (b ^ k) := by
+  induction k with
+  | zero =>
+    rw [Int.pow_zero, Int.pow_zero]
+    exact congruent_refl n 1
+  | succ k ih =>
+    rw [Int.pow_succ, Int.pow_succ]
+    apply congruent_mul n _ _ _ _ ih hab
+
+theorem congruent_cancel_add (n a b c : Int)
+    (hab : Congruent n (a + c) (b + c)) :
+    Congruent n a b := by
+  rcases hab with ⟨k, hk⟩
+  exists k
+  arith
+
+theorem congruent_weaken_product (n d a b : Int)
+    (hab : Congruent (n * d) a b) :
+    Congruent n a b := by
+  rcases hab with ⟨k, hk⟩
+  exists d * k
+  arith
+
+theorem congruent_of_dvd (m n a b : Int)
+    (hd : Dvd.dvd n m) (hab : Congruent m a b) :
+    Congruent n a b := by
+  rcases hd with ⟨d, hd⟩
+  rcases hab with ⟨k, hk⟩
+  exists d * k
+  rw [hd] at hk
+  rw [hk, Int.mul_assoc]
+
+theorem congruent_dvd_sub (n a b : Int)
+    (hab : Congruent n a b) : n ∣ a - b :=
+  (congruent_iff_dvd_sub n a b).mp hab
+
+theorem congruent_of_dvd_sub (n a b : Int)
+    (hab : n ∣ a - b) : Congruent n a b :=
+  (congruent_iff_dvd_sub n a b).mpr hab
+
+theorem congruent_emod_eq (n a b : Int)
+    (hab : Congruent n a b) : a % n = b % n :=
+  (congruent_iff_emod_eq n a b).mp hab
+
+theorem congruent_sub_emod_zero (n a b : Int)
+    (hab : Congruent n a b) : (a - b) % n = 0 :=
+  Int.emod_eq_zero_of_dvd (congruent_dvd_sub n a b hab)
+
+theorem divides_dvd (n m : Int)
+    (h : Divides n m) : Dvd.dvd n m := h
+
+attribute [ample_arith_simp] congruent_iff_emod_eq
+attribute [ample_arith_apply] congruent_add congruent_mul congruent_neg congruent_sub congruent_pow
+attribute [ample_arith_grind →] congruent_cancel_add congruent_weaken_product congruent_of_dvd
+attribute [ample_arith_prepare] congruent_dvd_sub congruent_emod_eq congruent_sub_emod_zero
+  congruent_of_dvd_sub divides_dvd Int.emod_eq_zero_of_dvd
+
+@[ample_rewrite] theorem congruent_rewriteLaws (n : Int) :
+    Rewriting.Laws (Congruent n) :=
+  ⟨congruent_refl n,
+    fun h => congruent_symm n _ _ h,
+    fun h k => congruent_trans n _ _ _ h k⟩
+
+@[ample_rewrite] theorem congruent_add_action (n : Int) :
+    Rewriting.Action2 (Congruent n) (Congruent n) (Congruent n)
+      (fun a b : Int => a + b) :=
+  ⟨fun h k => congruent_add n _ _ _ _ h k⟩
+
+@[ample_rewrite] theorem congruent_mul_action (n : Int) :
+    Rewriting.Action2 (Congruent n) (Congruent n) (Congruent n)
+      (fun a b : Int => a * b) :=
+  ⟨fun h k => congruent_mul n _ _ _ _ h k⟩
+
+@[ample_rewrite] theorem congruent_neg_action (n : Int) :
+    Rewriting.Action (Congruent n) (Congruent n) (fun a : Int => -a) :=
+  ⟨fun h => congruent_neg n _ _ h⟩
+
+@[ample_rewrite] theorem congruent_sub_action (n : Int) :
+    Rewriting.Action2 (Congruent n) (Congruent n) (Congruent n)
+      (fun a b : Int => a - b) :=
+  ⟨fun h k => congruent_sub n _ _ _ _ h k⟩
+
+@[ample_rewrite] theorem congruent_pow_action (n : Int) :
+    Rewriting.Action2 (Congruent n) (@Eq Nat) (Congruent n)
+      (fun (a : Int) (k : Nat) => a ^ k) := by
+  constructor
+  intro a b k l hab hkl
+  cases hkl
+  exact congruent_pow n a b k hab
+
 example
     (a b : Int) :
-    a ≡ b [ZMOD 0] ↔ a = b := by
+    a ≡ b [MOD 0] ↔ a = b := by
   constructor
   · intro h
 
@@ -211,7 +350,7 @@ example
 
 example
     (a b : Int) :
-    a ≡ b [ZMOD 1] := by
+    a ≡ b [MOD 1] := by
   exists (a - b)
   rw [Int.one_mul, Int.add_comm b, Int.sub_add_cancel]
 

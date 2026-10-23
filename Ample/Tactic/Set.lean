@@ -39,7 +39,11 @@ scoped syntax (name := setAlias) "set " ident (" : " term)? " := " term
       let value ← Term.elabTermEnsuringType value type?
       Term.synthesizeSyntheticMVarsNoPostponing
       let value ← instantiateMVars value
-      let type ← inferType value
+      -- Keep the user's presentation type, including non-reducible aliases.
+      -- Re-inferring it from a lambda would lose e.g. `Set A` in favour of `A → Prop`.
+      let type ← match type? with
+        | some type => instantiateMVars type
+        | none => inferType value
       let tagged := mkMData (MData.empty.setBool setAliasKey true) value
       let (alias, goal) ← (← (← getMainGoal).define name.getId type tagged).intro1P
       replaceMainGoal [goal]

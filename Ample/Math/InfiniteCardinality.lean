@@ -4,7 +4,6 @@ import Ample.Math.FiniteCardinality
 open scoped Classical
 
 namespace Ample
-local infixr:90 (priority := high) " ∘ " => compose
 
 def CardinalityLE : Type → Type → Prop :=
   fun A B => ∃ f : A → B, Injective f
@@ -109,7 +108,7 @@ theorem toPositive_bijective : Bijective toPositive := by
   · intro x y hxy
 
     expand at hxy
-    indisc at hxy
+    apply_fun (fun x => x.val) at hxy
     arith
 
   · intro y
@@ -362,18 +361,18 @@ theorem cantor_not_surjective {A : Type} (f : A → Set A) :
 
 
   have hnot : a ∉ D := by
-    intro hmem
-    apply hmem
+    intro hin
+    apply hin
     rw [ha]
-    exact hmem
+    exact hin
 
 
-  have hmem : a ∈ D := by
+  have hin : a ∈ D := by
     expand
     rw [ha]
     exact hnot
 
-  exact hnot hmem
+  exact hnot hin
 
 def initialSegment (n : Nat) : Set Nat := fun k => k < n
 def initialSegmentDiagonal : Set Nat :=

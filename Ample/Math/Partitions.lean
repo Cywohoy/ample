@@ -22,7 +22,7 @@ theorem cover {A : Type} {blocks : Set (Set A)}
     ∃ S, S ∈ blocks ∧ x ∈ S := by
   exact h.right.left x
 
-theorem eq_of_mem {A : Type} {blocks : Set (Set A)}
+theorem eq_of_in {A : Type} {blocks : Set (Set A)}
     (h : IsPartition blocks) (S T : Set A)
     (hS : S ∈ blocks) (hT : T ∈ blocks)
     (hmeet : ∃ x, x ∈ S ∧ x ∈ T) : S = T := by
@@ -82,7 +82,7 @@ theorem sameBlock_equivalence {A : Type}
     rcases hxy with ⟨S, hS, hx, hy⟩
     rcases hyz with ⟨T, hT, hyT, hz⟩
     have hST : S = T := by
-      apply h.eq_of_mem S T hS hT
+      apply h.eq_of_in S T hS hT
       exists y
     rw [← hST] at hz
     exists S
@@ -98,7 +98,7 @@ theorem sameBlock_class {A : Type} (blocks : Set (Set A))
   · intro hx
     rcases hx with ⟨T, hT, hx, haT⟩
     have hTS : T = S := by
-      apply h.eq_of_mem T S hT hS
+      apply h.eq_of_in T S hT hS
       exists a
     rw [← hTS]
     exact hx

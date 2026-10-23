@@ -15,9 +15,13 @@ register_simp_attr ample_norm_hyp
 
 -- Iff theorems connecting whole equalities with their mathematical comparisons.
 register_label_attr ample_compare
+-- Certified relation laws and unary/binary actions for reversible rewriting.
+register_label_attr ample_rewrite
 
 -- Separate arithmetic rule application, expression simplification, and reasoning from hypotheses.
 register_label_attr ample_arith_apply
+-- One-premise implications used once on the original arithmetic hypotheses.
+register_label_attr ample_arith_prepare
 register_label_attr ample_card_rules
 register_label_attr ample_group_rules
 register_simp_attr ample_arith_simp

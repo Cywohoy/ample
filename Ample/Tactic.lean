@@ -1,4 +1,5 @@
 import Ample.Tactic.Classical
+import Ample.Tactic.ApplyFun
 import Ample.Tactic.Auto
 import Ample.Tactic.Transform
 import Ample.Tactic.Set

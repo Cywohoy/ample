@@ -6,7 +6,7 @@ open Ample
 -- The quotient set contains sets; its element type packages membership evidence.
 example {A : Type} (R : Relation A) (a : A) :
     equivalenceClass R a ∈ quotientSet R := by
-  exact equivalenceClass_mem_quotientSet R a
+  exact equivalenceClass_in_quotientSet R a
 
 -- A quotient element supplies all the evidence needed to select a representative.
 example {A : Type} (R : Relation A) (q : QuotientType R) :
