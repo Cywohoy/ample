@@ -1,5 +1,7 @@
 # Ample 개발 지침
 
+- 다른 컴퓨터에서 재개할 때는 `HANDOFF.md`와 형제 `LeanFoundations/HANDOFF.md`의 체크포인트·로컬 자료 복원 절차를 먼저 확인한다.
+
 - Ample은 Lean의 표준 타입·명제·등식과 커널을 사용하는 독립 라이브러리이다. 별도의 문법, 타입 검사기나 Cubical 기초 체계를 구현하지 않는다.
 - 이전 Cubical 실험은 별도 AmpleCTT 프로젝트에 보관한다. 이 패키지에서 가져오지 않는다.
 - Lean 4.35.0에 포함된 `Init`, `Std`, `Lean`만 의존한다. Batteries, mathlib, Verso나 교재 모듈을 가져오지 않는다.

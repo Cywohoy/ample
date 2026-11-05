@@ -9,34 +9,16 @@ local notation:50 a " ≡ " b " [MOD " n "]" => Congruent n a b
 
 abbrev Relation (A : Type _) := A → A → Prop
 
-structure IsEquivalence {A : Type _}
-    (R : Relation A) : Prop where
-  refl : ∀ a, R a a
-  symm : ∀ {a b}, R a b → R b a
-  trans : ∀ {a b c}, R a b → R b c → R a c
-
-namespace IsEquivalence
-
-
-@[ample_rewrite] theorem rewriteLaws
-    {A : Type _} {R : Relation A} (hR : IsEquivalence R) :
-    Rewriting.Laws R :=
-  ⟨hR.refl, hR.symm, hR.trans⟩
-
-end IsEquivalence
-
 theorem congruent_equivalence (n : Int) :
-    IsEquivalence (Congruent n) := by
-  constructor
-  · exact congruent_refl n
-  · intro a b hab
-    apply congruent_symm n a b
-    exact hab
+    IsEquivalence (Congruent n) :=
+  { refl := congruent_refl n
+    symm := by
+      intro a b
+      exact congruent_symm n a b
 
-  · intro a b c hab hbc
-    apply congruent_trans n a b c
-    · exact hab
-    · exact hbc
+    trans := by
+      intro a b c
+      exact congruent_trans n a b c }
 
 example :
     ¬ IsEquivalence (fun a b : Nat => a ≤ b) := by
@@ -50,12 +32,28 @@ example :
   have hNot10 : ¬ 1 ≤ 0 := by decide
   exact hNot10 h10
 
+example :
+    -5 ≡ 23 [MOD 7] := by
+  have hR : IsEquivalence (Congruent 7) :=
+    congruent_equivalence 7
+  apply hR.symm
+  exact congruent_twenty_three_neg_five
+
+attribute [class] IsEquivalence
+
+instance equality_isEquivalence (A : Type _) : IsEquivalence (@Eq A) :=
+  ⟨Eq.refl, Eq.symm, Eq.trans⟩
+
+instance congruent_isEquivalence (n : Int) :
+    IsEquivalence (Congruent n) :=
+  congruent_equivalence n
+
 def equivalenceClass {A : Type _} (R : Relation A) (a : A) :
     Set A :=
   fun x => R x a
 
 theorem equivalenceClass_eq {A : Type _} (R : Relation A)
-    (hR : IsEquivalence R)
+    [hR : IsEquivalence R]
     (a b : A)
     (hab : R a b) :
     equivalenceClass R a = equivalenceClass R b := by
@@ -72,21 +70,21 @@ theorem equivalenceClass_eq {A : Type _} (R : Relation A)
 example :
     equivalenceClass (Congruent 7) 23 =
     equivalenceClass (Congruent 7) (-5) := by
-  apply equivalenceClass_eq (Congruent 7)
-    (congruent_equivalence 7) 23 (-5)
+  apply equivalenceClass_eq (Congruent 7) 23 (-5)
   exact congruent_twenty_three_neg_five
 
-def quotientSet {A : Type _} (R : Relation A) :
+def quotientSet {A : Type _} (R : Relation A)
+    [IsEquivalence R] :
     Set (Set A) :=
   fun S => ∃ a : A, S = equivalenceClass R a
 
 theorem equivalenceClass_in_quotientSet {A : Type _}
-    (R : Relation A) (a : A) :
+    (R : Relation A) [IsEquivalence R] (a : A) :
     equivalenceClass R a ∈ quotientSet R := by
   exists a
 
 def QuotientType {A : Type _}
-    (R : Relation A) :=
+    (R : Relation A) [IsEquivalence R] :=
   Elem (quotientSet R)
 
 attribute [reducible] QuotientType
@@ -97,14 +95,14 @@ open Lean PrettyPrinter Delaborator SubExpr in
 /-- Display the quotient carrier and relation without unfolding its construction. -/
 def Notation.delabQuotientType : Delab :=
     whenNotPPOption getPPExplicit <| whenPPOption getPPNotation do
-  withOverApp 2 do
+  withOverApp 3 do
     let carrier ← withNaryArg 0 delab
     let relation ← withNaryArg 1 delab
     return ⟨mkNode ``quotientTypeNotation #[carrier.raw, mkAtom "/", relation.raw]⟩
 
 attribute [scoped delab app.Ample.QuotientType] Notation.delabQuotientType
 
-def classOf {A : Type _} (R : Relation A) (a : A) :
+def classOf {A : Type _} (R : Relation A) [IsEquivalence R] (a : A) :
     A / R :=
   { val := equivalenceClass R a
     property := equivalenceClass_in_quotientSet R a }
@@ -115,14 +113,14 @@ open Lean PrettyPrinter Delaborator SubExpr in
 /-- Display a quotient constructor using the ambient quotient type. -/
 def Notation.delabClassOf : Delab :=
     whenNotPPOption getPPExplicit <| whenPPOption getPPNotation do
-  withOverApp 3 do
-    let value ← withNaryArg 2 delab
+  withOverApp 4 do
+    let value ← withNaryArg 3 delab
     return ⟨mkNode ``classOfNotation #[mkAtom "⟦", value.raw, mkAtom "⟧"]⟩
 
 attribute [scoped delab app.Ample.classOf] Notation.delabClassOf
 
 theorem classOf_eq_iff {A : Type _} (R : Relation A)
-    (hR : IsEquivalence R)
+    [hR : IsEquivalence R]
     (a b : A) :
     (⟦a⟧ : A / R) = ⟦b⟧ ↔ R a b := by
   constructor
@@ -136,7 +134,7 @@ theorem classOf_eq_iff {A : Type _} (R : Relation A)
 
   · intro hab
     ext
-    exact equivalenceClass_eq R hR a b hab
+    exact equivalenceClass_eq R a b hab
 
 def Parity := Int / Congruent 2
 abbrev parityClass (a : Int) : Parity :=
@@ -146,8 +144,7 @@ attribute [reducible] Parity
 
 theorem parityClass_eq_iff (a b : Int) :
     parityClass a = parityClass b ↔ a ≡ b [MOD 2] := by
-  exact classOf_eq_iff (Congruent 2)
-    (congruent_equivalence 2) a b
+  exact classOf_eq_iff (Congruent 2) a b
 
 attribute [ample_compare] parityClass_eq_iff
 
@@ -163,27 +160,12 @@ example (a b : Int)
   exact h
 
 theorem quotient_exists_classOf {A : Type _}
-    (R : Relation A) (q : A / R) :
-    ∃ a : A, q = ⟦a⟧ := by
-  unpack q.property with ⟨a, ha⟩
+    (R : Relation A) [IsEquivalence R] (u : A / R) :
+    ∃ a : A, u = ⟦a⟧ := by
+  unpack u.property with ⟨a, ha⟩
   exists a
   ext
   exact ha
-
-noncomputable def quotientReprData {A : Type _}
-    (R : Relation A) (q : A / R) :
-    { a : A // q = ⟦a⟧ } :=
-  { val := Classical.choose (quotient_exists_classOf R q)
-    property :=
-      Classical.choose_spec (quotient_exists_classOf R q) }
-
-noncomputable def quotientRepr {A : Type _}
-    (R : Relation A) (q : A / R) : A :=
-  (quotientReprData R q).val
-theorem quotientRepr_spec {A : Type _}
-    {R : Relation A} (q : A / R) :
-    q = ⟦quotientRepr R q⟧ := by
-  exact (quotientReprData R q).property
 
 example :
     ¬ ∃ F : Parity → Int, ∀ a, F (parityClass a) = a := by
@@ -194,50 +176,167 @@ example :
   rw [parityClass_zero_two, hF 2] at hZero
   contradiction
 
-theorem congruent_two_same_remainder (a b : Int)
-    (hab : a ≡ b [MOD 2]) :
-    a % 2 = b % 2 := by
+theorem congruent_two_same_remainder (a b : Int) :
+    a ≡ b [MOD 2] → a % 2 = b % 2 := by
+  intro hab
   unpack hab with ⟨k, hk⟩
   arith
 
-noncomputable def quotientLiftData {A B : Type _}
+theorem quotient_value_unique {A B : Type _}
     (R : Relation A)
-    (hR : IsEquivalence R)
-    (f : A → B)
-    (hf : ∀ a b, R a b → f a = f b) :
-    { F : A / R → B //
-      ∀ a, F ⟦a⟧ = f a } :=
-  { val := fun q => f (quotientRepr R q)
-    property := by
-      intro a
-      let b := quotientRepr R ⟦a⟧
-      have hRelation : R b a := by
-        apply (classOf_eq_iff R hR b a).mp
-        exact (quotientRepr_spec ⟦a⟧).symm
+    [hR : IsEquivalence R]
+    (g : A → B)
+    (hg : ∀ a b, R a b → g a = g b)
+    (u : A / R) :
+    ∃! b : B, ∃ a : A, u = ⟦a⟧ ∧ g a = b := by
+  unpack quotient_exists_classOf R u with ⟨a, ha⟩
+  exists g a
+  constructor
+  · exists a
+  · intro b hb
+    unpack hb with ⟨c, hc⟩
+    unpack hc with ⟨huc, hcb⟩
+
+    have hca : R c a := by
+      apply (classOf_eq_iff R c a).mp
+      rw [← huc, ← ha]
 
 
-      exact hf b a hRelation }
+    rw [← hcb]
+    apply hg c a
+    exact hca
 
 noncomputable def quotientLift {A B : Type _}
     (R : Relation A)
-    (hR : IsEquivalence R)
-    (f : A → B)
-    (hf : ∀ a b, R a b → f a = f b) :
-    A / R → B :=
-  (quotientLiftData R hR f hf).val
+    [hR : IsEquivalence R]
+    (g : A → B)
+    (hg : ∀ a b, R a b → g a = g b) :
+    A / R → B := fun u =>
+  uniqueValue
+    (fun b => ∃ a : A, u = ⟦a⟧ ∧ g a = b)
+    (quotient_value_unique R g hg u)
+
 theorem quotientLift_classOf {A B : Type _}
     {R : Relation A}
-    {hR : IsEquivalence R}
-    {f : A → B}
-    {hf : ∀ a b, R a b → f a = f b}
+    [hR : IsEquivalence R]
+    {g : A → B}
+    {hg : ∀ a b, R a b → g a = g b}
     {a : A} :
-    quotientLift R hR f hf ⟦a⟧ = f a := by
-  exact (quotientLiftData R hR f hf).property a
+    quotientLift R g hg ⟦a⟧ = g a := by
+  apply uniqueValue_eq
+  exists a
+
+theorem quotientLift_compose {A B : Type _}
+    (R : Relation A)
+    [hR : IsEquivalence R]
+    (g : A → B)
+    (hg : ∀ a b, R a b → g a = g b) :
+    quotientLift R g hg ∘ classOf R = g := by
+  ext a
+  dsimp [compose]
+  rw [quotientLift_classOf]
+
+theorem classOf_sound {A : Type _} (R : Relation A)
+    [IsEquivalence R] {a b : A} :
+    R a b → (classOf R a : A / R) = classOf R b :=
+  (classOf_eq_iff R a b).mpr
+
+theorem classOf_exact {A : Type _} (R : Relation A)
+    [IsEquivalence R] {a b : A} :
+    (classOf R a : A / R) = classOf R b → R a b :=
+  (classOf_eq_iff R a b).mp
+
+theorem quotientInductionOn {A : Type _} (R : Relation A)
+    [IsEquivalence R] (q : A / R) {P : A / R → Prop}
+    (h : ∀ a, P (classOf R a)) : P q := by
+  unpack quotient_exists_classOf R q with ⟨a, ha⟩
+  rw [ha]
+  exact h a
+
+theorem quotientInductionOn₂ {A B : Type _}
+    (R : Relation A) (S : Relation B)
+    [IsEquivalence R] [IsEquivalence S]
+    (q : A / R) (r : B / S) {P : A / R → B / S → Prop}
+    (h : ∀ a b, P (classOf R a) (classOf S b)) : P q r := by
+  apply quotientInductionOn R q
+  intro a
+  apply quotientInductionOn S r
+  exact h a
+
+theorem quotient_funext {A B : Type _} (R : Relation A)
+    [IsEquivalence R] {F G : A / R → B}
+    (h : ∀ a, F (classOf R a) = G (classOf R a)) : F = G := by
+  funext q
+  apply quotientInductionOn R q
+  exact h
+
+noncomputable def quotientLift₂ {A B C : Type _}
+    (R : Relation A) (S : Relation B)
+    [hR : IsEquivalence R] [hS : IsEquivalence S]
+    (f : A → B → C)
+    (hf : ∀ a a' b b', R a a' → S b b' → f a b = f a' b') :
+    A / R → B / S → C :=
+  quotientLift R
+    (fun a => quotientLift S (f a)
+      (fun b b' hbb => hf a a b b' (hR.refl a) hbb))
+    (by
+      intro a a' haa
+      apply quotient_funext S
+      intro b
+      rw [quotientLift_classOf, quotientLift_classOf]
+      exact hf a a' b b haa (hS.refl b))
+
+theorem quotientLift₂_classOf {A B C : Type _}
+    {R : Relation A} {S : Relation B}
+    [IsEquivalence R] [IsEquivalence S]
+    {f : A → B → C}
+    {hf : ∀ a a' b b', R a a' → S b b' → f a b = f a' b'}
+    {a : A} {b : B} :
+    quotientLift₂ R S f hf (classOf R a) (classOf S b) = f a b := by
+  dsimp [quotientLift₂]
+  rw [quotientLift_classOf, quotientLift_classOf]
+
+attribute [irreducible] quotientLift₂
+
+noncomputable def quotientMap {A B : Type _}
+    (R : Relation A) (S : Relation B)
+    [IsEquivalence R] [IsEquivalence S]
+    (f : A → B) (hf : Rewriting.Action R S f) :
+    A / R → B / S :=
+  quotientLift R (fun a => classOf S (f a))
+    (by
+      intro a b hab
+      apply classOf_sound S
+      exact hf.map hab)
+
+theorem quotientMap_classOf {A B : Type _}
+    {R : Relation A} {S : Relation B}
+    [IsEquivalence R] [IsEquivalence S]
+    {f : A → B} {hf : Rewriting.Action R S f} {a : A} :
+    quotientMap R S f hf (classOf R a) = classOf S (f a) := by
+  exact quotientLift_classOf
+
+theorem quotientMap_identity {A : Type _} (R : Relation A)
+    [IsEquivalence R] :
+    quotientMap R R (fun a => a) ⟨fun h => h⟩ = (fun q => q) := by
+  apply quotient_funext R
+  intro a
+  rw [quotientMap_classOf]
+
+theorem quotientMap_compose {A B C : Type _}
+    (R : Relation A) (S : Relation B) (T : Relation C)
+    [IsEquivalence R] [IsEquivalence S] [IsEquivalence T]
+    (f : A → B) (g : B → C)
+    (hf : Rewriting.Action R S f) (hg : Rewriting.Action S T g) :
+    quotientMap R T (fun a => g (f a)) ⟨fun h => hg.map (hf.map h)⟩ =
+      (fun q => quotientMap S T g hg (quotientMap R S f hf q)) := by
+  apply quotient_funext R
+  intro a
+  rw [quotientMap_classOf, quotientMap_classOf, quotientMap_classOf]
 
 noncomputable def parityRemainder : Parity → Int :=
   quotientLift
     (Congruent 2)
-    (congruent_equivalence 2)
     (fun a => a % 2)
     congruent_two_same_remainder
 
@@ -271,13 +370,32 @@ theorem parityClass_zero_ne_one :
   contradiction
 
 theorem quotientLift_unique {A B : Type _}
-    (R : Relation A) (f : A → B)
-    (F G : A / R → B)
-    (hF : ∀ a, F ⟦a⟧ = f a)
-    (hG : ∀ a, G ⟦a⟧ = f a) :
+    (R : Relation A) [IsEquivalence R] (f : A → B)
+    (F G : A / R → B) :
+    (∀ a, F ⟦a⟧ = f a) →
+    (∀ a, G ⟦a⟧ = f a) →
     F = G := by
+  intro hF hG
   ext q
   unpack quotient_exists_classOf R q with ⟨a, ha⟩
   rw [ha, hF a, hG a]
+
+theorem quotientLift_injective {A B : Type _}
+    (R : Relation A)
+    [hR : IsEquivalence R]
+    (g : A → B)
+    (hg : ∀ a b, R a b → g a = g b) :
+    (∀ a b, g a = g b → R a b) →
+    Injective (quotientLift R g hg) := by
+  intro hback u v huv
+  unpack quotient_exists_classOf R u with ⟨a, ha⟩
+  unpack quotient_exists_classOf R v with ⟨b, hb⟩
+
+  rw [ha, hb, quotientLift_classOf,
+    quotientLift_classOf] at huv
+  rw [ha, hb]
+  apply (classOf_eq_iff R a b).mpr
+  apply hback a b
+  exact huv
 
 end Ample

@@ -4,37 +4,33 @@ import Ample.Tactic.Auto
 open Ample
 
 -- The quotient set contains sets; its element type packages membership evidence.
-example {A : Type} (R : Relation A) (a : A) :
+example {A : Type} (R : Relation A) [IsEquivalence R] (a : A) :
     equivalenceClass R a ∈ quotientSet R := by
   exact equivalenceClass_in_quotientSet R a
 
--- A quotient element supplies all the evidence needed to select a representative.
-example {A : Type} (R : Relation A) (q : QuotientType R) :
-    q = classOf R (quotientRepr R q) := by
-  exact quotientRepr_spec q
+-- A quotient element supplies evidence of a representative's existence.
+example {A : Type} (R : Relation A) [IsEquivalence R] (q : QuotientType R) :
+    ∃ a, q = classOf R a := by
+  exact quotient_exists_classOf R q
 
 -- A class-constant function has the prescribed value for any representative of the class.
-example {A B : Type} (R : Relation A) (hR : IsEquivalence R)
+example {A B : Type} (R : Relation A) [hR : IsEquivalence R]
     (q : QuotientType R) (a : A)
     (hqa : q = classOf R a)
     (f : A → B) (hf : ∀ a b, R a b → f a = f b) :
-    f (quotientRepr R q) = f a := by
-  let chosen := quotientRepr R q
-  have hab : R chosen a := by
-    apply (classOf_eq_iff R hR chosen a).mp
-    exact (quotientRepr_spec q).symm.trans hqa
-  exact hf chosen a hab
+    quotientLift R f hf q = f a := by
+  rw [hqa, quotientLift_classOf]
 
-example {A : Type} (R : Relation A) (a : A) :
+example {A : Type} (R : Relation A) [IsEquivalence R] (a : A) :
     (classOf R a).val = equivalenceClass R a := by rfl
 
-example {A : Type} (R : Relation A) (q : QuotientType R) :
+example {A : Type} (R : Relation A) [IsEquivalence R] (q : QuotientType R) :
     ∃ a : A, q = classOf R a := by
   exact quotient_exists_classOf R q
 
-example {A : Type} (R : Relation A) (hR : IsEquivalence R) (a b : A) :
+example {A : Type} (R : Relation A) [hR : IsEquivalence R] (a b : A) :
     classOf R a = classOf R b ↔ R a b := by
-  exact classOf_eq_iff R hR a b
+  exact classOf_eq_iff R a b
 
 -- Class comparison is one registered rule in either direction.
 example (a b : Int) (hab : Congruent 2 a b) :
@@ -74,20 +70,20 @@ example (a b : Cardinal) (h : a = b) : a ≤ b := by
 
 -- Class invariance establishes the prescribed value at every representative.
 example (f : Int → Nat) (hf : ∀ a b, Congruent 2 a b → f a = f b) (a : Int) :
-    quotientLift (Congruent 2) (congruent_equivalence 2) f hf (parityClass a) = f a := by
+    quotientLift (Congruent 2) f hf (parityClass a) = f a := by
   exact quotientLift_classOf
 
 -- Any representative selector yields the same lifted function, including
 -- quotients over a larger universe than the codomain.
 example {A : Type 1} {B : Type}
-    (R : Relation A) (hR : IsEquivalence R)
+    (R : Relation A) [hR : IsEquivalence R]
     (f : A → B) (hf : ∀ a b, R a b → f a = f b)
     (pick : (q : QuotientType R) → {a : A // q = classOf R a}) :
-    (fun q => f (pick q).val) = quotientLift R hR f hf := by
+    (fun q => f (pick q).val) = quotientLift R f hf := by
   apply quotientLift_unique R f
   · intro a
     apply hf
-    apply (classOf_eq_iff R hR _ a).mp
+    apply (classOf_eq_iff R _ a).mp
     exact (pick (classOf R a)).property.symm
   · intro a
     exact quotientLift_classOf
@@ -111,7 +107,7 @@ run_meta do
   if ← input.mvarId!.isAssigned then throwError "Comparison matching assigned an existing input."
 
 #print axioms quotient_exists_classOf
-#print axioms quotientLiftData
+#print axioms quotient_value_unique
 #print axioms quotientLift_unique
 
 -- Relation is a transparent carrier alias. Rewriting a representative equation
@@ -119,7 +115,6 @@ run_meta do
 private noncomputable def nextParity : Parity → Parity :=
   quotientLift
     (Congruent 2)
-    (congruent_equivalence 2)
     (fun a => parityClass (a + 1))
     (by
       intro a b hab

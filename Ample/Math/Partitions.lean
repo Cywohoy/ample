@@ -13,7 +13,7 @@ structure IsPartition {A : Type}
 
 theorem equivalenceClasses_partition {A : Type}
     (R : Relation A)
-    (hR : IsEquivalence R) :
+    [hR : IsEquivalence R] :
     IsPartition
       (fun S => ∃ a, S = equivalenceClass R a) := by
   constructor
@@ -36,7 +36,7 @@ theorem equivalenceClasses_partition {A : Type}
     rw [ha] at hxS
     rw [hb] at hxT
     rw [ha, hb]
-    apply equivalenceClass_eq R hR
+    apply equivalenceClass_eq R
     apply hR.trans
     · apply hR.symm
       exact hxS

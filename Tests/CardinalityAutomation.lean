@@ -33,11 +33,13 @@ example (f : A → B) (hf : Bijective f) (y : B) :
     f (inverseMap f hf y) = y := by
   exact inverseMap_right f
 
-example (hA : IsFinite A) : cardinal A = (cardinalityData A hA).val := by
-  exact (cardinalityData A hA).property
+example (hA : IsFinite A) : cardinal A = cardinality A hA := by
+  exact cardinality_spec hA
 
 example (A : Type) : CardinalityLT A (Set A) := by
   exact cardinality_lt_powerSet A
 
 example (f : A → Set A) : ¬ Surjective f := by
-  exact cantor_not_surjective f
+  intro hf
+  apply cantor_not_surjective A
+  exists f

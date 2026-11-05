@@ -7,37 +7,37 @@ namespace Ample
 
 def double (n : Nat) : Nat := 2 * n
 
-def identity (A : Type) : A → A :=
+def identity (A : Type _) : A → A :=
   fun x => x
 
-example {A : Type}
+example {A : Type _}
     (x : A) :
     identity A x = x := by
   rfl
 
-example {A B : Type}
+example {A B : Type _}
     (f : A → B) (x y : A)
     (hxy : x = y) :
     f x = f y := by
   rw [hxy]
 
-example {A B : Type}
+example {A B : Type _}
     (f g : A → B)
     (hfg : f = g)
     (x : A) :
     f x = g x := by
   rw [hfg]
 
-def image {A B : Type} (f : A → B) (S : Set A) : Set B :=
+def image {A B : Type _} (f : A → B) (S : Set A) : Set B :=
   fun y => ∃ x, x ∈ S ∧ f x = y
 
 example :
     6 ∈ image double (whole Nat) := by
   exists 3
 
-theorem image_mono {A B : Type} (f : A → B) (S T : Set A)
-    (hST : S ⊆ T) :
-    image f S ⊆ image f T := by
+theorem image_mono {A B : Type _} (f : A → B) (S T : Set A) :
+    S ⊆ T → image f S ⊆ image f T := by
+  intro hST
   intro y hy
   rcases hy with ⟨x, ⟨hxS, hxy⟩⟩
 
@@ -55,7 +55,7 @@ example :
   rcases hy with ⟨n, ⟨hn, hEq⟩⟩
   contradiction
 
-def preimage {A B : Type} (f : A → B) (T : Set B) : Set A :=
+def preimage {A B : Type _} (f : A → B) (T : Set B) : Set A :=
   fun x => f x ∈ T
 
 example :
@@ -65,7 +65,7 @@ example :
   expand
   decide
 
-theorem subset_preimage_image {A B : Type}
+theorem subset_preimage_image {A B : Type _}
     (f : A → B) (S : Set A) :
     S ⊆ preimage f (image f S) := by
   intro x hx
@@ -76,10 +76,10 @@ example :
     (image (fun _ : Nat => 0) (fun n => n = 0)) := by
   exists 0
 
-def Injective {A B : Type} : (A → B) → Prop :=
+def Injective {A B : Type _} : (A → B) → Prop :=
   fun f => ∀ x y, f x = f y → x = y
 
-theorem identity_injective (A : Type) :
+theorem identity_injective (A : Type _) :
     Injective (identity A) := by
   intro x y hxy
   exact hxy
@@ -98,10 +98,12 @@ theorem double_injective : Injective double := by
   apply Nat.mul_left_cancel (n := 2) (by decide)
   exact hxy
 
-theorem preimage_image_of_injective {A B : Type} (f : A → B)
-    (hf : Injective f)
-    (S : Set A) :
+theorem preimage_image_of_injective {A B : Type _}
+    (f : A → B) :
+    Injective f →
+    ∀ S : Set A,
     preimage f (image f S) = S := by
+  intro hf S
   apply set_eq_of_subset
   · intro x hx
     rcases hx with ⟨y, ⟨hy, hxy⟩⟩
@@ -118,28 +120,30 @@ example :
   exact preimage_image_of_injective double
     double_injective twoThree
 
-def Surjective {A B : Type} : (A → B) → Prop :=
+def Surjective {A B : Type _} : (A → B) → Prop :=
   fun f => ∀ y, ∃ x, f x = y
 
-theorem identity_surjective (A : Type) :
+theorem identity_surjective (A : Type _) :
     Surjective (identity A) := by
   intro y
   exists y
 
-theorem identity_inj_and_surj (A : Type) :
+theorem identity_inj_and_surj (A : Type _) :
     Injective (identity A) ∧ Surjective (identity A) := by
   constructor
   · exact identity_injective A
   · exact identity_surjective A
 
-structure Bijective {A B : Type}
+structure Bijective {A B : Type _}
     (f : A → B) : Prop where
   inj : Injective f
   surj : Surjective f
 
-theorem identity_bijective (A : Type) :
+theorem identity_bijective (A : Type _) :
     Bijective (identity A) := by
-  have h := identity_inj_and_surj A
+  have h : Injective (identity A) ∧
+      Surjective (identity A) :=
+    identity_inj_and_surj A
   unpack h with ⟨hinj, hsurj⟩
   constructor
   · exact hinj
@@ -152,17 +156,17 @@ theorem double_in_evens (n : Nat) :
 
 def aboveTwo : Set Nat := fun n => 2 < n
 def shiftTwo (n : Nat) : Nat := n + 2
-theorem shiftTwo_in_aboveTwo (n : Nat)
-    (hn : n ∈ positives) :
-    shiftTwo n ∈ aboveTwo := by
+theorem shiftTwo_in_aboveTwo (n : Nat) :
+    n ∈ positives → shiftTwo n ∈ aboveTwo := by
+  intro hn
   apply Nat.add_lt_add_right (k := 2)
   exact hn
 
-def Elem {A : Type _} (S : Set A) := {x : A // x ∈ S}
+structure Elem {A : Type _} (S : Set A) where
+  val : A
+  property : val ∈ S
 
-attribute [implicit_reducible] Elem
-
-def functions_element_from_membership {A : Type}
+def functions_element_from_membership {A : Type _}
     (S : Set A) (a : A)
     (ha : a ∈ S) :
     Elem S :=
@@ -192,10 +196,26 @@ example :
     (shiftTwoOnPositives oneInPositives).val = 3 := by
   rfl
 
-@[ext] theorem elem_ext {A : Type _} {S : Set A} {s t : Elem S}
-    (h : s.val = t.val) : s = t := by
-  apply Subtype.ext
-  exact h
+example : Nonempty Nat := by
+  constructor
+  exact 0
+
+theorem not_exists_elem_empty {A : Type _} :
+    ¬ Nonempty (Elem (∅ : Set A)) := by
+  intro h
+  unpack h with ⟨s⟩
+  exact s.property
+
+@[ext] theorem elem_ext {A : Type _} {S : Set A}
+    {s t : Elem S} :
+    s.val = t.val → s = t := by
+  intro h
+  unpack s with ⟨a, ha⟩
+  unpack t with ⟨b, hb⟩
+  expand at h
+  -- h : a = b
+  cases h
+  rfl
 
 @[simp] theorem elem_eq_iff {S : Set A}
     (s t : Elem S) :
@@ -209,14 +229,14 @@ example :
 
 attribute [ample_norm_hyp] elem_eq_iff
 
-example {A : Type}
+example {A : Type _}
     (S : Set A) (s t : Elem S)
     (h : s = t) :
     s.val = t.val := by
   apply_fun (fun x => x.val) at h
   exact h
 
-theorem elem_val_injective {A : Type} (S : Set A) :
+theorem elem_val_injective {A : Type _} (S : Set A) :
     Injective (fun s : Elem S => s.val) := by
   intro s t hst
   ext
@@ -237,6 +257,41 @@ theorem doubleToEvens_bijective :
     ext
     exact hn.symm
 
+def emptyMap {A B : Type _} : Elem (∅ : Set A) → B :=
+  fun s => False.elim s.property
+
+theorem emptyMap_unique {A B : Type _}
+    (f g : Elem (∅ : Set A) → B) :
+    f = g := by
+  ext s
+  apply False.elim
+  exact s.property
+
+theorem not_exists_map_to_empty {A B : Type _} :
+    Nonempty A →
+    ¬ Nonempty (A → Elem (∅ : Set B)) := by
+  intro hA hMap
+  unpack hA with ⟨a⟩
+  unpack hMap with ⟨f⟩
+  exact (f a).property
+
+example {B : Type _} :
+    ¬ Nonempty (Nat → Elem (∅ : Set B)) := by
+  apply not_exists_map_to_empty
+  constructor
+  exact 0
+
+example {A B : Type _}
+    (hA : ¬ Nonempty A) :
+    A → Elem (∅ : Set B) := by
+  intro a
+  have hFalse : False := by
+    apply hA
+    constructor
+    exact a
+
+  exact False.elim hFalse
+
 def cardinality_fin_three_last : Fin 3 :=
   { val := 2, isLt := by decide }
 
@@ -246,29 +301,30 @@ example (i j : Fin n)
   ext
   exact h
 
-def restrict {A B : Type}
+def restrict {A B : Type _}
     (f : A → B) (S : Set A) : Elem S → B :=
   fun s => f s.val
 example :
     restrict double positives oneInPositives = 2 := by
   rfl
 
-theorem restrict_injective {A B : Type}
-    (f : A → B) (S : Set A)
-    (hf : Injective f) :
+theorem restrict_injective {A B : Type _}
+    (f : A → B) (S : Set A) :
+    Injective f →
     Injective (restrict f S) := by
+  intro hf
   intro s t hst
   ext
   apply hf s.val t.val
   exact hst
 
-def toImage {A B : Type} (f : A → B) (x : A) :
+def toImage {A B : Type _} (f : A → B) (x : A) :
     Elem (image f (whole A)) :=
   { val := f x
     property := by
       exists x }
 
-theorem toImage_surjective {A B : Type} (f : A → B) :
+theorem toImage_surjective {A B : Type _} (f : A → B) :
     Surjective (toImage f) := by
   intro y
   rcases y.property with ⟨x, ⟨hx, hxy⟩⟩
@@ -276,17 +332,17 @@ theorem toImage_surjective {A B : Type} (f : A → B) :
   ext
   exact hxy
 
-def compose {A B C : Type}
+def compose {A B C : Type _}
     (g : B → C) (f : A → B) : A → C :=
   fun x => g (f x)
 scoped infixr:90 (priority := high) " ∘ " => compose
 
-example {A B C : Type}
+example {A B C : Type _}
     (f : A → B) (g : B → C) (x : A) :
     (g ∘ f) x = g (f x) := by
   rfl
 
-theorem functions_compose_of_pointwise_equal {A B C : Type}
+theorem functions_compose_of_pointwise_equal {A B C : Type _}
     (f : B → C)
     (g h : A → B)
     (hgh : ∀ x, g x = h x)
@@ -295,7 +351,7 @@ theorem functions_compose_of_pointwise_equal {A B C : Type}
   congr : 1
   exact hgh x
 
-theorem compose_of_pointwise_equal {A B C : Type}
+theorem compose_of_pointwise_equal {A B C : Type _}
     (f : B → C)
     (g h : A → B)
     (hgh : ∀ x, g x = h x) :
@@ -303,44 +359,46 @@ theorem compose_of_pointwise_equal {A B C : Type}
   ext x
   exact functions_compose_of_pointwise_equal f g h hgh x
 
-theorem compose_assoc {A B C D : Type}
+theorem compose_assoc {A B C D : Type _}
     (f : A → B) (g : B → C)
     (h : C → D) :
     h ∘ (g ∘ f) = (h ∘ g) ∘ f := by
   ext x
   rfl
 
-theorem compose_identity {A B : Type} (f : A → B) :
+theorem compose_identity {A B : Type _} (f : A → B) :
     f ∘ identity A = f := by
   ext x
   rfl
 
-theorem identity_compose {A B : Type} (f : A → B) :
+theorem identity_compose {A B : Type _} (f : A → B) :
     identity B ∘ f = f := by
   ext x
   rfl
 
 attribute [simp] compose_identity identity_compose
 
-example {A B : Type} (f : A → B) :
+example {A B : Type _} (f : A → B) :
     (identity B ∘ f) ∘ identity A = f := by
   simp
 
-theorem injective_compose {A B C : Type}
-    (f : A → B) (g : B → C)
-    (hf : Injective f)
-    (hg : Injective g) :
+theorem injective_compose {A B C : Type _}
+    (f : A → B) (g : B → C) :
+    Injective f →
+    Injective g →
     Injective (g ∘ f) := by
+  intro hf hg
   intro x y hxy
   apply hf
   apply hg
   exact hxy
 
-theorem surjective_compose {A B C : Type}
-    (f : A → B) (g : B → C)
-    (hf : Surjective f)
-    (hg : Surjective g) :
+theorem surjective_compose {A B C : Type _}
+    (f : A → B) (g : B → C) :
+    Surjective f →
+    Surjective g →
     Surjective (g ∘ f) := by
+  intro hf hg
   intro z
 
   unpack hg z with ⟨y, hy⟩
@@ -352,18 +410,19 @@ theorem surjective_compose {A B C : Type}
   rw [hx]
   exact hy
 
-theorem bijective_compose {A B C : Type}
-    (f : A → B) (g : B → C)
-    (hf : Bijective f)
-    (hg : Bijective g) :
+theorem bijective_compose {A B C : Type _}
+    (f : A → B) (g : B → C) :
+    Bijective f →
+    Bijective g →
     Bijective (g ∘ f) := by
+  intro hf hg
   constructor
   · exact injective_compose f g hf.inj hg.inj
   · exact surjective_compose f g hf.surj hg.surj
 
 def addPair (p : Nat × Nat) : Nat := p.1 + p.2
 
-example {A B : Type} (a c : A) (b d : B)
+example {A B : Type _} (a c : A) (b d : B)
     (ha : a = c)
     (hb : b = d) :
     (a, b) = (c, d) := by
@@ -371,18 +430,18 @@ example {A B : Type} (a c : A) (b d : B)
   · exact ha
   · exact hb
 
-example {A B : Type} (a c : A) (b d : B)
+example {A B : Type _} (a c : A) (b d : B)
     (h : (a, b) = (c, d)) :
     (b, a) = (d, c) := by
   apply_fun (fun p => p.1) at h with ha
   apply_fun (fun p => p.2) at h with hb
   rw [ha, hb]
 
-def setProduct {A B : Type}
+def setProduct {A B : Type _}
     (S : Set A) (T : Set B) : Set (A × B) :=
   fun p => p.1 ∈ S ∧ p.2 ∈ T
 
-example {A B : Type}
+example {A B : Type _}
     (S : Set A) (T : Set B) (a : A) (b : B)
     (ha : a ∈ S)
     (hb : b ∈ T) :
@@ -391,15 +450,16 @@ example {A B : Type}
   · exact ha
   · exact hb
 
-def productMap {A B C D : Type}
+def productMap {A B C D : Type _}
     (f : A → C) (g : B → D) : A × B → C × D :=
   fun p => (f p.1, g p.2)
 
-theorem productMap_injective {A B C D : Type}
-    (f : A → C) (g : B → D)
-    (hf : Injective f)
-    (hg : Injective g) :
+theorem productMap_injective {A B C D : Type _}
+    (f : A → C) (g : B → D) :
+    Injective f →
+    Injective g →
     Injective (productMap f g) := by
+  intro hf hg
   intro x y hxy
 
   apply_fun (fun p => p.1) at hxy with hfirst
@@ -408,11 +468,12 @@ theorem productMap_injective {A B C D : Type}
   · exact hf x.1 y.1 hfirst
   · exact hg x.2 y.2 hsecond
 
-theorem productMap_surjective {A B C D : Type}
-    (f : A → C) (g : B → D)
-    (hf : Surjective f)
-    (hg : Surjective g) :
+theorem productMap_surjective {A B C D : Type _}
+    (f : A → C) (g : B → D) :
+    Surjective f →
+    Surjective g →
     Surjective (productMap f g) := by
+  intro hf hg
   intro y
 
   unpack hf y.1 with ⟨a, ha⟩
@@ -422,32 +483,27 @@ theorem productMap_surjective {A B C D : Type}
   · exact ha
   · exact hb
 
-theorem productMap_bijective {A B C D : Type}
-    (f : A → C) (g : B → D)
-    (hf : Bijective f)
-    (hg : Bijective g) :
+theorem productMap_bijective {A B C D : Type _}
+    (f : A → C) (g : B → D) :
+    Bijective f →
+    Bijective g →
     Bijective (productMap f g) := by
+  intro hf hg
   constructor
   · exact productMap_injective f g hf.inj hg.inj
   · exact productMap_surjective f g
       hf.surj hg.surj
 
-theorem functions_identity_twice {A : Type}
-    (x : A) :
-    identity A (identity A x) = x := by
-  rfl
-
-example {A : Type} :
+example {A : Type _} :
     identity A ∘ identity A = identity A := by
-  ext x
-  exact functions_identity_twice x
+  exact compose_identity (identity A)
 
-def swapPair {A B : Type} (p : A × B) : B × A := (p.2, p.1)
-theorem swapPair_twice {A B : Type} (p : A × B) :
+def swapPair {A B : Type _} (p : A × B) : B × A := (p.2, p.1)
+theorem swapPair_twice {A B : Type _} (p : A × B) :
     swapPair (swapPair p) = p := by
   rfl
 
-theorem swapPair_bijective {A B : Type} :
+theorem swapPair_bijective {A B : Type _} :
     Bijective (swapPair : A × B → B × A) := by
   constructor
   · intro p q hpq
@@ -461,62 +517,62 @@ theorem swapPair_bijective {A B : Type} :
   · intro q
     exists (swapPair q)
 
-theorem bijective_preimage_unique {A B : Type} (f : A → B)
-    (hf : Bijective f) :
-    ∀ y : B, ∃ x : A,
-      f x = y ∧ ∀ z : A, f z = y → z = x := by
-  intro y
+theorem bijective_preimage_unique {A B : Type _} (f : A → B) :
+    Bijective f →
+    ∀ y : B, ∃! x : A, f x = y := by
+  intro hf y
 
   unpack hf.surj y with ⟨x, hx⟩
   exists x
   constructor
   · exact hx
   · intro z hz
-
     apply hf.inj
     rw [hz, hx]
 
-theorem identity_preimage_exists {A : Type} (y : A) :
-    ∃ x : A, identity A x = y := by
-  exists y
+noncomputable def uniqueValue {A : Type _} (P : A → Prop)
+    (h : ExistsUnique P) : A :=
+  Classical.choose h
 
-def identityPreimage {A : Type} (y : A) :
-    {x : A // identity A x = y} :=
-  { val := y, property := by rfl }
+theorem uniqueValue_property {A : Type _} {P : A → Prop}
+    (h : ExistsUnique P) :
+    P (uniqueValue P h) := by
+  exact (Classical.choose_spec h).left
 
-example {A : Type}
-    (y : A) :
-    (identityPreimage y).val = y := by
+theorem uniqueValue_eq {A : Type _} {P : A → Prop}
+    {h : ∃! x : A, P x} {a : A} :
+    P a → uniqueValue P h = a := by
+  intro ha
+  have hvalue : P (uniqueValue P h) := by
+    exact uniqueValue_property h
+
+  unpack h with ⟨w, hw⟩
+  unpack hw with ⟨hwP, huniq⟩
+  rw [huniq _ hvalue, huniq a ha]
+
+noncomputable def inverseMap {A B : Type _} (f : A → B)
+    (hf : Bijective f) (y : B) : A :=
+  uniqueValue
+    (fun x => f x = y)
+    (bijective_preimage_unique f hf y)
+
+theorem inverseMap_right {A B : Type _} (f : A → B)
+    {hf : Bijective f} {y : B} :
+    f (inverseMap f hf y) = y := by
+  exact uniqueValue_property
+    (bijective_preimage_unique f hf y)
+
+theorem inverseMap_left {A B : Type _} (f : A → B)
+    {hf : Bijective f} {x : A} :
+    inverseMap f hf (f x) = x := by
+  apply uniqueValue_eq
   rfl
 
-noncomputable def inverseMapData {A B : Type} (f : A → B)
-    (hf : Bijective f) :
-    { g : B → A // ∀ y, f (g y) = y } :=
-  { val := fun y => Classical.choose (hf.surj y)
-    property := by
-      intro y
-      exact Classical.choose_spec (hf.surj y) }
-
-noncomputable def inverseMap {A B : Type} (f : A → B)
-    (hf : Bijective f) : B → A :=
-  (inverseMapData f hf).val
-theorem inverseMap_right {A B : Type} (f : A → B)
-    {hf : Bijective f}
-    {y : B} :
-    f (inverseMap f hf y) = y := by
-  exact (inverseMapData f hf).property y
-
-theorem inverseMap_left {A B : Type} (f : A → B)
-    {hf : Bijective f}
-    {x : A} :
-    inverseMap f hf (f x) = x := by
-  apply hf.inj
-  exact inverseMap_right f
-
-theorem inverse_exists {A B : Type} (f : A → B)
-    (hf : Bijective f) :
+theorem inverse_exists {A B : Type _} (f : A → B) :
+    Bijective f →
     ∃ g : B → A,
       (∀ x, g (f x) = x) ∧ (∀ y, f (g y) = y) := by
+  intro hf
   exists (inverseMap f hf)
   constructor
   · intro x
@@ -525,11 +581,12 @@ theorem inverse_exists {A B : Type} (f : A → B)
   · intro y
     exact inverseMap_right f
 
-theorem inverse_function_unique {A B : Type} (f : A → B)
-    (g h : B → A)
-    (hg : (∀ x, g (f x) = x) ∧ (∀ y, f (g y) = y))
-    (hh : (∀ x, h (f x) = x) ∧ (∀ y, f (h y) = y)) :
+theorem inverse_function_unique {A B : Type _} (f : A → B)
+    (g h : B → A) :
+    ((∀ x, g (f x) = x) ∧ (∀ y, f (g y) = y)) →
+    ((∀ x, h (f x) = x) ∧ (∀ y, f (h y) = y)) →
     g = h := by
+  intro hg hh
   ext y
 
   have hgy : g (f (h y)) = h y := by
@@ -538,7 +595,7 @@ theorem inverse_function_unique {A B : Type} (f : A → B)
   rw [hh.right y] at hgy
   exact hgy
 
-example {A B : Type} :
+example {A B : Type _} :
     inverseMap (swapPair : A × B → B × A)
       swapPair_bijective =
       swapPair := by
@@ -554,19 +611,19 @@ example {A B : Type} :
     · exact swapPair_twice
     · exact swapPair_twice
 
-theorem inverseMap_compose {A B : Type} (f : A → B)
+theorem inverseMap_compose {A B : Type _} (f : A → B)
     (hf : Bijective f) :
     inverseMap f hf ∘ f = identity A := by
   ext x
   exact inverseMap_left f
 
-theorem compose_inverseMap {A B : Type} (f : A → B)
+theorem compose_inverseMap {A B : Type _} (f : A → B)
     (hf : Bijective f) :
     f ∘ inverseMap f hf = identity B := by
   ext y
   exact inverseMap_right f
 
-theorem inverseMap_bijective {A B : Type} (f : A → B)
+theorem inverseMap_bijective {A B : Type _} (f : A → B)
     (hf : Bijective f) :
     Bijective (inverseMap f hf) := by
   constructor
@@ -585,5 +642,128 @@ theorem inverseMap_bijective {A B : Type} (f : A → B)
 
     exists (f x)
     exact inverseMap_left f
+
+namespace Elem
+
+/-- Restrict both the domain and codomain using a proof of membership preservation. -/
+def map {A B : Type _} {S : Set A} {T : Set B}
+    (f : A → B) (hf : ∀ a, a ∈ S → f a ∈ T) : Elem S → Elem T :=
+  fun a => { val := f a.val, property := hf a.val a.property }
+
+@[simp] theorem map_val {A B : Type _} {S : Set A} {T : Set B}
+    {f : A → B} {hf : ∀ a, a ∈ S → f a ∈ T} {a : Elem S} :
+    (map f hf a).val = f a.val := rfl
+
+/-- Regard an element of a subset as an element of the containing set. -/
+def inclusion {A : Type _} {S T : Set A}
+    (h : S ⊆ T) : Elem S → Elem T := map (fun a => a) h
+
+@[simp] theorem inclusion_val {A : Type _} {S T : Set A}
+    {h : S ⊆ T} {a : Elem S} : (inclusion h a).val = a.val := rfl
+
+theorem map_injective {A B : Type _} {S : Set A} {T : Set B}
+    (f : A → B) (hf : ∀ a, a ∈ S → f a ∈ T) :
+    Injective f → Injective (map f hf) := by
+  intro hinj x y hxy
+  apply elem_ext
+  apply hinj
+  exact congrArg (fun z : Elem T => z.val) hxy
+
+theorem inclusion_injective {A : Type _} {S T : Set A}
+    (h : S ⊆ T) : Injective (inclusion h) := by
+  intro x y hxy
+  apply elem_ext
+  exact congrArg (fun z : Elem T => z.val) hxy
+
+@[simp] theorem map_identity {A : Type _} {S : Set A} (a : Elem S) :
+    map (fun x => x) (fun _ h => h) a = a := by
+  apply elem_ext
+  rfl
+
+theorem map_compose {A B C : Type _} {S : Set A} {T : Set B} {U : Set C}
+    (f : A → B) (g : B → C)
+    (hf : ∀ a, a ∈ S → f a ∈ T) (hg : ∀ b, b ∈ T → g b ∈ U)
+    (a : Elem S) :
+    map g hg (map f hf a) = map (fun x => g (f x))
+      (fun x hx => hg (f x) (hf x hx)) a := by
+  apply elem_ext
+  rfl
+
+end Elem
+
+/-- A chosen reversible correspondence, including the inverse and both laws. -/
+structure Equiv (A B : Type _) where
+  toFun : A → B
+  invFun : B → A
+  left_inv : ∀ a, invFun (toFun a) = a
+  right_inv : ∀ b, toFun (invFun b) = b
+
+namespace Equiv
+
+def refl (A : Type _) : Equiv A A :=
+  { toFun := fun a => a, invFun := fun a => a
+    left_inv := fun _ => rfl, right_inv := fun _ => rfl }
+
+def symm {A B : Type _} (e : Equiv A B) : Equiv B A :=
+  { toFun := e.invFun, invFun := e.toFun
+    left_inv := e.right_inv, right_inv := e.left_inv }
+
+def trans {A B C : Type _} (e : Equiv A B) (d : Equiv B C) : Equiv A C :=
+  { toFun := fun a => d.toFun (e.toFun a)
+    invFun := fun c => e.invFun (d.invFun c)
+    left_inv := by intro a; rw [d.left_inv, e.left_inv]
+    right_inv := by intro c; rw [e.right_inv, d.right_inv] }
+
+theorem bijective {A B : Type _} (e : Equiv A B) : Bijective e.toFun := by
+  constructor
+  · intro a b h
+    have h' := congrArg e.invFun h
+    rw [e.left_inv, e.left_inv] at h'
+    exact h'
+  · intro b
+    exists e.invFun b
+    exact e.right_inv b
+
+noncomputable def ofBijective {A B : Type _} (f : A → B)
+    (hf : Bijective f) : Equiv A B :=
+  { toFun := f, invFun := inverseMap f hf
+    left_inv := fun _ => inverseMap_left f
+    right_inv := fun _ => inverseMap_right f }
+
+@[ext] theorem ext {A B : Type _} {e d : Equiv A B}
+    (h : ∀ a, e.toFun a = d.toFun a) : e = d := by
+  have ht : e.toFun = d.toFun := funext h
+  have hi : e.invFun = d.invFun := by
+    funext b
+    apply e.bijective.inj
+    rw [e.right_inv, ht, d.right_inv]
+  cases e
+  cases d
+  cases ht
+  cases hi
+  rfl
+
+def prod {A B C D : Type _} (e : Equiv A B) (d : Equiv C D) :
+    Equiv (A × C) (B × D) :=
+  { toFun := fun p => (e.toFun p.1, d.toFun p.2)
+    invFun := fun p => (e.invFun p.1, d.invFun p.2)
+    left_inv := by intro p; simp [e.left_inv, d.left_inv]
+    right_inv := by intro p; simp [e.right_inv, d.right_inv] }
+
+def sum {A B C D : Type _} (e : Equiv A B) (d : Equiv C D) :
+    Equiv (Sum A C) (Sum B D) :=
+  { toFun := Sum.map e.toFun d.toFun
+    invFun := Sum.map e.invFun d.invFun
+    left_inv := by intro p; cases p <;> simp [e.left_inv, d.left_inv]
+    right_inv := by intro p; cases p <;> simp [e.right_inv, d.right_inv] }
+
+def arrow {A B C D : Type _} (e : Equiv A B) (d : Equiv C D) :
+    Equiv (A → C) (B → D) :=
+  { toFun := fun f b => d.toFun (f (e.invFun b))
+    invFun := fun g a => d.invFun (g (e.toFun a))
+    left_inv := by intro f; funext a; dsimp; rw [e.left_inv, d.left_inv]
+    right_inv := by intro g; funext b; dsimp; rw [e.right_inv, d.right_inv] }
+
+end Equiv
 
 end Ample

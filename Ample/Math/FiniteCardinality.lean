@@ -16,30 +16,33 @@ theorem sameCardinality_refl (A : Type) :
 
 attribute [simp] sameCardinality_refl
 
-theorem sameCardinality_symm {A B : Type}
-    (h : SameCardinality A B) :
+theorem sameCardinality_symm {A B : Type} :
+    SameCardinality A B →
     SameCardinality B A := by
+  intro h
   unpack h with ⟨f, hf⟩
   exists (inverseMap f hf)
   exact inverseMap_bijective f hf
 
-theorem sameCardinality_trans {A B C : Type}
-    (hAB : SameCardinality A B)
-    (hBC : SameCardinality B C) :
+theorem sameCardinality_trans {A B C : Type} :
+    SameCardinality A B →
+    SameCardinality B C →
     SameCardinality A C := by
+  intro hAB hBC
   unpack hAB with ⟨f, hf⟩
   unpack hBC with ⟨g, hg⟩
   exists (g ∘ f)
   exact bijective_compose f g hf hg
 
-theorem sameCardinality_equivalence : IsEquivalence SameCardinality := by
-  constructor
-  · exact sameCardinality_refl
-  · intro A B hAB
-    exact sameCardinality_symm hAB
+theorem sameCardinality_equivalence :
+    IsEquivalence SameCardinality :=
+  { refl := sameCardinality_refl
+    symm := sameCardinality_symm
+    trans := sameCardinality_trans }
 
-  · intro A B C hAB hBC
-    exact sameCardinality_trans hAB hBC
+instance sameCardinality_isEquivalence :
+    IsEquivalence SameCardinality :=
+  sameCardinality_equivalence
 
 def Cardinal := Type / SameCardinality
 def cardinal (A : Type) : Cardinal :=
@@ -49,8 +52,7 @@ attribute [reducible] Cardinal
 
 theorem cardinal_eq_iff (A B : Type) :
     cardinal A = cardinal B ↔ SameCardinality A B := by
-  exact classOf_eq_iff SameCardinality
-    sameCardinality_equivalence A B
+  exact classOf_eq_iff SameCardinality A B
 
 attribute [ample_compare] cardinal_eq_iff
 
@@ -101,8 +103,11 @@ theorem empty_cardinal (A : Type) :
     exact Fin.elim0 i
 
   · intro x
-    have hx : False :=
-      x.property
+    have hx : False := by
+      apply not_exists_elem_empty (A := A)
+      constructor
+      exact x
+
     contradiction
 
 def singleton {A : Type} (a : A) : Set A := fun x => x = a
@@ -171,9 +176,10 @@ theorem threeNumbers_cardinal :
     arith
 
 theorem cardinality_finite_transport {A B : Type} {n : Nat}
-    (hAB : cardinal A = cardinal B)
-    (hA : cardinal A = cardinal (Fin n)) :
+    (hAB : cardinal A = cardinal B) :
+    cardinal A = cardinal (Fin n) →
     cardinal B = cardinal (Fin n) := by
+  intro hA
   rw [← hAB]
   exact hA
 
@@ -280,12 +286,13 @@ example
     (if k < r then k else k - 1) = k - 1 := by
   exact ite_eq_right h
 
-theorem eraseIndex_lt {n r k : Nat}
-    (hr : r < n + 1)
-    (hk : k < n + 1)
-    (hne : k ≠ r) :
+theorem eraseIndex_lt {n r k : Nat} :
+    r < n + 1 →
+    k < n + 1 →
+    k ≠ r →
     eraseIndex r k < n := by
-  rw [eraseIndex]
+  intro hr hk hne
+  expand
   by_cases h : k < r
   · rw [ite_eq_left h]
     arith
@@ -293,13 +300,14 @@ theorem eraseIndex_lt {n r k : Nat}
   · rw [ite_eq_right h]
     arith
 
-theorem eraseIndex_injective {r x y : Nat}
-    (hx : x ≠ r)
-    (hy : y ≠ r)
-    (h : eraseIndex r x = eraseIndex r y) :
-    x = y := by
+theorem eraseIndex_injective {r x y : Nat} :
+    x ≠ r →
+    y ≠ r →
+    eraseIndex r x = eraseIndex r y → x = y := by
+  intro hx hy
+  intro h
 
-  rw [eraseIndex, eraseIndex] at h
+  expand at h
   by_cases hxr : x < r
   · by_cases hyr : y < r
 
@@ -322,64 +330,66 @@ theorem eraseIndex_injective {r x y : Nat}
       arith
 
 theorem fin_injection_remove {m n : Nat}
-    (f : Fin (m + 1) → Fin (n + 1))
-    (hf : Injective f) :
+    (f : Fin (m + 1) → Fin (n + 1)) :
+    Injective f →
     ∃ g : Fin m → Fin n, Injective g := by
+  intro hf
 
   let first : Fin (m + 1) :=
     { val := 0, isLt := by arith }
   let next (i : Fin m) : Fin (m + 1) :=
     { val := i.val + 1
-      isLt := Nat.succ_lt_succ i.isLt }
+      isLt := by arith }
 
 
-  have hne (i : Fin m) :
+  have hne : ∀ i : Fin m,
       (f (next i)).val ≠ (f first).val := by
+    intro i
     intro h
-    have hfi : f (next i) = f first := by
+    replace h : f (next i) = f first := by
       ext
       exact h
 
-    have hi : next i = first :=
-      hf (next i) first hfi
-    have hiVal : (next i).val = first.val := by
-      rw [hi]
-
-    expand at hiVal
+    replace h : next i = first :=
+      hf (next i) first h
+    apply_fun (fun x => x.val) at h
+    expand at h
     arith
 
 
   let g (i : Fin m) : Fin n :=
     { val := eraseIndex (f first).val (f (next i)).val
-      isLt := eraseIndex_lt
-        (f first).isLt (f (next i)).isLt (hne i) }
+      isLt := by
+        apply eraseIndex_lt
+        · exact (f first).isLt
+        · exact (f (next i)).isLt
+        · exact hne i }
 
   have hg : Injective g := by
     intro i j hij
 
-    have hVal : (g i).val = (g j).val := by
-      rw [hij]
-
-    have hfi : f (next i) = f (next j) := by
+    apply_fun (fun x => x.val) at hij
+    replace hij : f (next i) = f (next j) := by
       ext
-      exact eraseIndex_injective (hne i) (hne j) hVal
+      apply eraseIndex_injective (hne i) (hne j)
+      exact hij
 
 
-    have hi : next i = next j :=
-      hf (next i) (next j) hfi
-    have hiVal : (next i).val = (next j).val := by
-      rw [hi]
+    replace hij : next i = next j :=
+      hf (next i) (next j) hij
+    apply_fun (fun x => x.val) at hij
 
 
     ext
-    expand at hiVal
+    expand at hij
     arith
 
   exists g
 
-theorem fin_injective_le {m n : Nat} (f : Fin m → Fin n)
-    (hf : Injective f) :
+theorem fin_injective_le {m n : Nat} (f : Fin m → Fin n) :
+    Injective f →
     m ≤ n := by
+  intro hf
 
   induction n generalizing m with
   | zero =>
@@ -421,9 +431,10 @@ theorem three_into_two_collision (f : Fin 3 → Fin 2) :
   exists i
   exists j
 
-theorem fin_sameCardinality_eq {m n : Nat}
-    (h : SameCardinality (Fin m) (Fin n)) :
+theorem fin_sameCardinality_eq {m n : Nat} :
+    SameCardinality (Fin m) (Fin n) →
     m = n := by
+  intro h
 
   have hReverse : SameCardinality (Fin n) (Fin m) :=
     sameCardinality_symm h
@@ -438,18 +449,21 @@ theorem fin_sameCardinality_eq {m n : Nat}
 
   arith
 
-theorem cardinal_fin_eq {m n : Nat}
-    (h : cardinal (Fin m) = cardinal (Fin n)) :
+theorem cardinal_fin_eq {m n : Nat} :
+    cardinal (Fin m) = cardinal (Fin n) →
     m = n := by
+  intro h
   apply fin_sameCardinality_eq
   exact (cardinal_eq_iff _ _).mp h
 
-theorem finite_cardinal_unique {A : Type} {m n : Nat}
-    (hm : cardinal A = cardinal (Fin m))
-    (hn : cardinal A = cardinal (Fin n)) :
+theorem finite_cardinal_unique {A : Type} {m n : Nat} :
+    cardinal A = cardinal (Fin m) →
+    cardinal A = cardinal (Fin n) →
     m = n := by
+  intro hm hn
   apply cardinal_fin_eq
-  exact hm.symm.trans hn
+  rw [← hm]
+  exact hn
 
 example (n : Nat)
     (hn : cardinal (Elem threeNumbers) = cardinal (Fin n)) :
@@ -477,23 +491,33 @@ theorem cardinal_fin (n : Nat) :
     cardinal (Fin n) = (n : Cardinal) := by
   rfl
 
-noncomputable def cardinalityData (A : Type)
-    (hA : IsFinite A) : {n : Nat // cardinal A = n} :=
-  { val := Classical.choose hA
-    property := Classical.choose_spec hA }
+theorem finite_count_unique (A : Type) :
+    IsFinite A → ∃! n : Nat, cardinal A = n := by
+  intro hA
+  unpack hA with ⟨n, hn⟩
+  exists n
+  constructor
+  · exact hn
+  · intro m hm
+    apply finite_cardinal_unique hm
+    exact hn
 
 noncomputable def cardinality (A : Type)
     (hA : IsFinite A) : Nat :=
-  (cardinalityData A hA).val
+  uniqueValue
+    (fun n => cardinal A = n)
+    (finite_count_unique A hA)
+
 theorem cardinality_spec {A : Type}
     (hA : IsFinite A) :
     cardinal A = cardinality A hA := by
-  exact (cardinalityData A hA).property
+  exact uniqueValue_property (finite_count_unique A hA)
 
 theorem cardinality_eq {A : Type} {n : Nat}
-    (hA : IsFinite A)
-    (hn : cardinal A = n) :
+    (hA : IsFinite A) :
+    cardinal A = n →
     cardinality A hA = n := by
+  intro hn
   exact finite_cardinal_unique (cardinality_spec hA) hn
 
 example :
@@ -502,9 +526,10 @@ example :
 
 def IsInfinite : Type → Prop := fun A => ¬ IsFinite A
 
-theorem no_injection_nat_fin (n : Nat) (f : Nat → Fin n) :
-    ¬ Injective f := by
-  intro hf
+theorem no_injection_nat_fin (n : Nat) :
+    ¬ ∃ f : Nat → Fin n, Injective f := by
+  intro h
+  unpack h with ⟨f, hf⟩
 
   let g (i : Fin (n + 1)) : Fin n := f i.val
   have hg : Injective g := by
@@ -517,21 +542,34 @@ theorem no_injection_nat_fin (n : Nat) (f : Nat → Fin n) :
     fin_injective_le g hg
   arith
 
-theorem infinite_of_nat_injection {A : Type} (f : Nat → A)
-    (hf : Injective f) :
+theorem infinite_of_exists_nat_injection {A : Type} :
+    (∃ f : Nat → A, Injective f) →
     IsInfinite A := by
+  intro h
+  unpack h with ⟨f, hf⟩
   intro hA
 
   unpack hA with ⟨n, hn⟩
   unpack (cardinal_eq_iff A (Fin n)).mp hn with ⟨r, hr⟩
 
 
-  apply no_injection_nat_fin n (r ∘ f)
-  exact injective_compose f r hf hr.inj
+  apply no_injection_nat_fin n
+  exists (r ∘ f)
+  apply injective_compose f r
+  · exact hf
+  · exact hr.inj
+
+theorem infinite_of_nat_injection {A : Type} (f : Nat → A) :
+    Injective f →
+    IsInfinite A := by
+  intro hf
+  apply infinite_of_exists_nat_injection
+  exists f
 
 theorem nat_isInfinite : IsInfinite Nat := by
-  exact infinite_of_nat_injection
-    (identity Nat) (identity_injective Nat)
+  apply infinite_of_exists_nat_injection
+  exists (identity Nat)
+  exact identity_injective Nat
 
 def finProduct (m n : Nat) (x : Fin (m * n)) :
     Fin m × Fin n :=
@@ -568,24 +606,27 @@ theorem finProduct_bijective (m n : Nat) :
 
     · arith
 
-theorem isFinite_of_cardinal_eq {A : Type} {n : Nat}
-    (h : cardinal A = n) :
+theorem isFinite_of_cardinal_eq {A : Type} {n : Nat} :
+    cardinal A = n →
     IsFinite A := by
+  intro h
   exists n
 
 theorem isFinite_transport {A B : Type}
-    (hAB : cardinal A = cardinal B)
-    (hA : IsFinite A) :
+    (hAB : cardinal A = cardinal B) :
+    IsFinite A →
     IsFinite B := by
+  intro hA
   unpack hA with ⟨n, hn⟩
   exists n
   rw [← hAB]
   exact hn
 
 theorem isInfinite_transport {A B : Type}
-    (hAB : cardinal A = cardinal B)
-    (hA : IsInfinite A) :
+    (hAB : cardinal A = cardinal B) :
+    IsInfinite A →
     IsInfinite B := by
+  intro hA
   intro hB
   apply hA
   exact isFinite_transport hAB.symm hB

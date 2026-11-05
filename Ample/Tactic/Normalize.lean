@@ -32,12 +32,13 @@ dsimproc ↓ [ample_norm] anonymousMembership (@Membership.mem _ _ _ _ _) := fun
   return .done e
 
 private def isConstructedEquality (type : Expr) : MetaM Bool := do
-  let some (_, lhs, rhs) := type.consumeMData.eq? | return false
+  let some (α, lhs, rhs) := type.consumeMData.eq? | return false
+  let α ← withReducible <| whnf α
+  let .const name _ := α.getAppFn | return false
+  unless isStructure (← getEnv) name do return false
   let lhs ← withReducible <| whnf lhs
   let rhs ← withReducible <| whnf rhs
-  let constructors := [``Subtype.mk, ``Fin.mk, ``Prod.mk]
-  return constructors.any (lhs.getAppFn.isConstOf ·) &&
-    constructors.any (rhs.getAppFn.isConstOf ·)
+  return (← isConstructorApp'? lhs).isSome && (← isConstructorApp'? rhs).isSome
 
 def normalizeGoal (goal : MVarId) : TacticM MVarId := goal.withContext do
   let classicalEnabled ← classicalNormalizationEnabled

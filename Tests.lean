@@ -47,3 +47,7 @@ import Tests.Set
 import Tests.SpecArguments
 import Tests.CardinalConstructions
 import Tests.NamedProperties
+import Tests.UniqueValue
+import Tests.ExistsUniqueNotation
+import Tests.EquivalenceInstances
+import Tests.MathematicalInterfaces

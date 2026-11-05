@@ -9,6 +9,39 @@ import Ample.Tactic.Unfold
 
 namespace Ample
 
+def ExistsUnique {A : Type _} (P : A → Prop) : Prop :=
+  ∃ x, P x ∧ ∀ y, P y → y = x
+
+macro "∃! " x:ident " : " A:term ", " P:term : term =>
+  `(ExistsUnique (fun $x : $A => $P))
+macro "∃! " x:ident ", " P:term : term =>
+  `(ExistsUnique (fun $x => $P))
+
+namespace Notation
+
+open Lean PrettyPrinter Delaborator SubExpr in
+/-- Display unique existence with one binder, including named predicates.
+Binder names are chosen in context; nested quantifiers are never merged.
+This changes only the displayed syntax, not the underlying proposition. -/
+@[delab app.Ample.ExistsUnique]
+def delabExistsUnique : Delab :=
+    whenNotPPOption getPPExplicit <| whenPPOption getPPNotation do
+  guard <| (← getExpr).isAppOfArity ``Ample.ExistsUnique 2
+  withAppArg do
+    let p ← getExpr
+    let p ← if p.isLambda then pure p else do
+      let type ← Meta.whnf (← Meta.inferType p)
+      guard type.isForall
+      pure <| Expr.lam `x type.bindingDomain!
+        (mkApp (p.liftLooseBVars 0 1) (.bvar 0)) .default
+    withTheReader Lean.SubExpr (fun ctx => { ctx with expr := p }) do
+      let type ← withBindingDomain delab
+      withBindingBodyUnusedName fun x => do
+        let body ← delab
+        `(∃! $(⟨x⟩):ident : $type, $body)
+
+end Notation
+
 def Set (A : Type _) := A → Prop
 
 attribute [implicit_reducible] Set
@@ -20,7 +53,7 @@ def positives : Set Nat := positive
 instance {A : Type _} : Membership A (Set A) where
   mem S x := S x
 
-@[simp] theorem in_def {A : Type} (S : Set A) (x : A) :
+@[simp] theorem in_def {A : Type _} (S : Set A) (x : A) :
     (x ∈ S) = S x := rfl
 
 attribute [ample_arith_simp] in_def positives positive
@@ -52,17 +85,17 @@ example : 3 ∈ positives := by
   change 0 < 3
   decide
 
-def whole (A : Type) : Set A := fun _ => True
-def empty (A : Type) : Set A := fun _ => False
-instance {A : Type} : EmptyCollection (Set A) where
+def whole (A : Type _) : Set A := fun _ => True
+def empty (A : Type _) : Set A := fun _ => False
+instance {A : Type _} : EmptyCollection (Set A) where
   emptyCollection := empty A
 
-def Subset {A : Type} : Set A → Set A → Prop :=
+def Subset {A : Type _} : Set A → Set A → Prop :=
   fun S T => ∀ x, x ∈ S → x ∈ T
-instance {A : Type} : HasSubset (Set A) where
+instance {A : Type _} : HasSubset (Set A) where
   Subset := Ample.Subset
 
-theorem subset_refl {A : Type} (S : Set A) :
+theorem subset_refl {A : Type _} (S : Set A) :
     S ⊆ S := by
   expand
 
@@ -72,25 +105,25 @@ theorem subset_refl {A : Type} (S : Set A) :
 
 attribute [simp] subset_refl
 
-theorem subset_whole {A : Type} (S : Set A) :
+theorem subset_whole {A : Type _} (S : Set A) :
     S ⊆ whole A := by
   intro x hx
   trivial
 
 attribute [simp] subset_whole
 
-theorem empty_subset {A : Type} (S : Set A) :
+theorem empty_subset {A : Type _} (S : Set A) :
     ∅ ⊆ S := by
   intro x hx
   contradiction
 
 attribute [simp] empty_subset
 
-example {A : Type} (S : Set A) :
+example {A : Type _} (S : Set A) :
     S ⊆ S := by
   simp
 
-theorem subset_trans {A : Type} (S T U : Set A)
+theorem subset_trans {A : Type _} (S T U : Set A)
     (hST : S ⊆ T)
     (hTU : T ⊆ U) :
     S ⊆ U := by
@@ -108,7 +141,7 @@ theorem subset_trans {A : Type} (S T U : Set A)
 
   exact hTUx hxT
 
-example {A : Type} (S T U : Set A)
+example {A : Type _} (S T U : Set A)
     (hST : S ⊆ T)
     (hTU : T ⊆ U) :
     S ⊆ U := by
@@ -141,7 +174,7 @@ example
   apply h.mp
   exact hP
 
-example (A B : Type) (f g : A → B)
+example (A B : Type _) (f g : A → B)
     (h : ∀ x : A, f x = g x) :
     f = g := by
   funext x
@@ -154,34 +187,34 @@ example
   apply propext
   exact h
 
-@[ext] theorem set_ext {A : Type _} {S T : Set A}
-    (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := by
+@[ext] theorem set_ext {A : Type _} {S T : Set A} :
+    (∀ x, x ∈ S ↔ x ∈ T) → S = T := by
+  intro h
   funext x
   apply propext
   exact h x
 
-example (A B : Type) (f g : A → B)
+example (A B : Type _) (f g : A → B)
     (h : ∀ x : A, f x = g x) :
     f = g := by
   ext x
   exact h x
 
-theorem set_eq_of_subset {A : Type} (S T : Set A)
-    (hST : S ⊆ T)
-    (hTS : T ⊆ S) :
-    S = T := by
+theorem set_eq_of_subset {A : Type _} (S T : Set A):
+    S ⊆ T → T ⊆ S → S = T := by
+  intro hST hTS
   ext x
   constructor
   · exact hST x
   · exact hTS x
 
 example
-    (A B : Type) (f g : A → B) (x : A)
+    (A B : Type _) (f g : A → B) (x : A)
     (h : f = g) :
     f x = g x := by
   rw [h]
 
-example {A : Type} (S T : Set A)
+example {A : Type _} (S T : Set A)
     (x : A)
     (hST : S = T)
     (hxS : x ∈ S) :
@@ -189,48 +222,39 @@ example {A : Type} (S T : Set A)
   rw [hST] at hxS
   exact hxS
 
-example {A : Type} (S T : Set A)
+example {A : Type _} (S T : Set A)
     (hST : S = T) :
     ∀ x, x ∈ S ↔ x ∈ T := by
   intro x
   rw [hST]
 
-def inter {A : Type} (S T : Set A) : Set A :=
+def inter {A : Type _} (S T : Set A) : Set A :=
   fun x => x ∈ S ∧ x ∈ T
-instance {A : Type} : Inter (Set A) where
+instance {A : Type _} : Inter (Set A) where
   inter := Ample.inter
 
-theorem inter_subset_left {A : Type} (S T : Set A) :
+theorem inter_subset_left {A : Type _} (S T : Set A) :
     S ∩ T ⊆ S := by
   intro x hx
   exact hx.left
 
-theorem inter_comm_forward {A : Type} (S T : Set A)
-    (x : A) :
-    x ∈ S ∩ T → x ∈ T ∩ S := by
-  intro hx
+theorem inter_comm_eq {A : Type _} (S T : Set A) :
+    S ∩ T = T ∩ S := by
+  ext x
   constructor
-  · exact hx.right
-  · exact hx.left
+  · intro hx
+    constructor
+    · exact hx.right
+    · exact hx.left
 
-theorem inter_comm_forward_by_parts {A : Type} (S T : Set A)
-    (x : A) :
-    x ∈ S ∩ T → x ∈ T ∩ S := by
-  intro hx
-  unpack hx with ⟨hxS, hxT⟩
-  constructor
-  · exact hxT
-  · exact hxS
+  · intro hx
+    constructor
+    · exact hx.right
+    · exact hx.left
 
-theorem inter_comm {A : Type} (S T : Set A) (x : A) :
-    x ∈ S ∩ T ↔ x ∈ T ∩ S := by
-  constructor
-  · exact inter_comm_forward S T x
-  · exact inter_comm_forward T S x
-
-theorem inter_eq_left_of_subset {A : Type} (S T : Set A)
-    (hST : S ⊆ T) :
-    S ∩ T = S := by
+theorem inter_eq_left_of_subset {A : Type _} (S T : Set A):
+    S ⊆ T → S ∩ T = S := by
+  intro hST
   apply set_eq_of_subset
   · exact inter_subset_left S T
   · intro x hx
@@ -238,21 +262,20 @@ theorem inter_eq_left_of_subset {A : Type} (S T : Set A)
     · exact hx
     · exact hST x hx
 
-def union {A : Type} (S T : Set A) : Set A :=
+def union {A : Type _} (S T : Set A) : Set A :=
   fun x => x ∈ S ∨ x ∈ T
-instance {A : Type} : Union (Set A) where
+instance {A : Type _} : Union (Set A) where
   union := Ample.union
 
-theorem subset_union_left {A : Type} (S T : Set A) :
+theorem subset_union_left {A : Type _} (S T : Set A) :
     S ⊆ S ∪ T := by
   intro x hx
   left
   exact hx
 
-theorem union_subset {A : Type} (S T U : Set A)
-    (hSU : S ⊆ U)
-    (hTU : T ⊆ U) :
-    S ∪ T ⊆ U := by
+theorem union_subset {A : Type _} (S T U : Set A):
+    S ⊆ U → T ⊆ U → S ∪ T ⊆ U := by
+  intro hSU hTU
   intro x hx
   cases hx with
   | inl hxS => exact hSU x hxS
@@ -280,7 +303,7 @@ example : twoThree ∩ positives = twoThree := by
   exact inter_eq_left_of_subset twoThree positives
     twoThree_subset_positives
 
-example {A : Type}
+example {A : Type _}
      (S T U : Set A) :
     S ∩ (T ∪ U) = (S ∩ T) ∪ (S ∩ U) := by
 
@@ -328,14 +351,14 @@ example
   apply hnotP
   exact hP
 
-def compl {A : Type} (S : Set A) : Set A :=
+def compl {A : Type _} (S : Set A) : Set A :=
   fun x => x ∉ S
-instance {A : Type} : Complement (Set A) where
+instance {A : Type _} : Complement (Set A) where
   complement := Ample.compl
 
 postfix:max "ᶜ" => Complement.complement
 
-example {A : Type}
+example {A : Type _}
      (S : Set A) (x : A)
     (hx : x ∈ S)
     (hxc : x ∈ Sᶜ) :
@@ -343,9 +366,9 @@ example {A : Type}
   apply hxc
   exact hx
 
-theorem compl_subset_compl {A : Type} (S T : Set A)
-    (hST : S ⊆ T) :
-    Tᶜ ⊆ Sᶜ := by
+theorem compl_subset_compl {A : Type _} (S T : Set A):
+    S ⊆ T → Tᶜ ⊆ Sᶜ := by
+  intro hST
   intro x hxTc
   intro hxS
   have hxT : x ∈ T := by
@@ -353,13 +376,13 @@ theorem compl_subset_compl {A : Type} (S T : Set A)
 
   exact hxTc hxT
 
-theorem subset_compl_compl {A : Type} (S : Set A) :
+theorem subset_compl_compl {A : Type _} (S : Set A) :
     S ⊆ Sᶜᶜ := by
   intro x hxS
   intro hxSc
   exact hxSc hxS
 
-theorem compl_compl_subset {A : Type} (S : Set A) :
+theorem compl_compl_subset {A : Type _} (S : Set A) :
     Sᶜᶜ ⊆ S := by
   intro x hxScc
   by_cases hxS : x ∈ S
@@ -369,21 +392,21 @@ theorem compl_compl_subset {A : Type} (S : Set A) :
 
     contradiction
 
-example {A : Type}
+example {A : Type _}
      (S : Set A) :
     Sᶜᶜ ⊆ S := by
   intro x hxScc
   apply Classical.not_not.mp
   exact hxScc
 
-example {A : Type}
+example {A : Type _}
      (S : Set A) :
     Sᶜᶜ ⊆ S := by
   intro x hxScc
   by_contra hxNotS
   exact hxScc hxNotS
 
-theorem compl_compl_eq {A : Type} (S : Set A) :
+theorem compl_compl_eq {A : Type _} (S : Set A) :
     Sᶜᶜ = S := by
   apply set_eq_of_subset
   · exact compl_compl_subset S
@@ -395,7 +418,7 @@ section
 open scoped Ample.Auto
 open scoped Classical
 
-example {A : Type}
+example {A : Type _}
      (S : Set A) :
     Sᶜᶜ ⊆ S := by
   intro x hxScc
@@ -405,12 +428,12 @@ example {A : Type}
 
 end
 
-def diff {A : Type} (S T : Set A) : Set A :=
+def diff {A : Type _} (S T : Set A) : Set A :=
   fun x => x ∈ S ∧ x ∉ T
-instance {A : Type} : SDiff (Set A) where
+instance {A : Type _} : SDiff (Set A) where
   sdiff := Ample.diff
 
-theorem diff_eq_inter_compl {A : Type} (S T : Set A) :
+theorem diff_eq_inter_compl {A : Type _} (S T : Set A) :
     S \ T = S ∩ Tᶜ := by
   ext x
   expand

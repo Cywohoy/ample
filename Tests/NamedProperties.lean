@@ -63,3 +63,50 @@ example {A : Type} (blocks : Set (Set A))
   case intersection => exact he
 
 end NamedPropertiesTests
+
+namespace ElementStructureTests
+
+-- Unpacking substitutes the stored value in both dependent facts and the goal.
+example {A : Type} (S : Set A) (P : A → Prop)
+    (s : Elem S) (h : P s.val) : P s.val := by
+  unpack s with ⟨a, ha⟩
+  guard_hyp ha : a ∈ S
+  guard_hyp h : P a
+  guard_target = P a
+  exact h
+
+-- Equality ignores the choice of evidence for the same membership proposition.
+example {A : Type} (S : Set A) (a : A) (h₁ h₂ : a ∈ S) :
+    ({ val := a, property := h₁ } : Elem S) =
+      { val := a, property := h₂ } := by
+  rfl
+
+example {A : Type} (S : Set A) (s t : Elem S)
+    (h : s.val = t.val) : s = t := by
+  ext
+  guard_target = s.val = t.val
+  exact h
+
+example {A : Type} (S : Set A) (s t : Elem S)
+    (h : s = t) : s.val = t.val := by
+  apply_fun (fun x => x.val) at h
+  guard_hyp h : s.val = t.val
+  exact h
+
+-- The existing injection interface also retains the whole-element equality.
+example {A : Type} (S : Set A) (s t : Elem S)
+    (h : s = t) : True := by
+  injection h with hv
+  guard_hyp h : s = t
+  guard_hyp hv : s.val = t.val
+  trivial
+
+open scoped Ample.Auto in
+example (s t : Elem (fun n : Nat => 2 ≤ n)) :
+    s = t → s.val = t.val := by
+  intro h
+  guard_hyp h : s = t
+  apply_fun (fun x => x.val) at h
+  exact h
+
+end ElementStructureTests

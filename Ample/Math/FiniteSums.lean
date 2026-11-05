@@ -4,6 +4,34 @@ import Ample.Math.Numbers
 open scoped Classical
 namespace Ample
 
+def sumNat : Nat → (Nat → Nat) → Nat
+  | 0, _ => 0
+  | n + 1, f => sumNat n f + f n
+
+theorem sumNat_succ (n : Nat) (f : Nat → Nat) :
+    sumNat (n + 1) f = sumNat n f + f n := by rfl
+
+theorem sumNat_constant (n a : Nat) :
+    sumNat n (fun _i => a) = n * a := by
+  induction n with
+  | zero => simp [sumNat]
+  | succ n ih =>
+    rw [sumNat_succ, ih, Nat.succ_mul]
+
+def prodNat : Nat → (Nat → Nat) → Nat
+  | 0, _ => 1
+  | n + 1, f => prodNat n f * f n
+
+theorem prodNat_succ (n : Nat) (f : Nat → Nat) :
+    prodNat (n + 1) f = prodNat n f * f n := by rfl
+
+theorem prodNat_constant (n a : Nat) :
+    prodNat n (fun _i => a) = a ^ n := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    rw [prodNat_succ, ih, Nat.pow_succ]
+
 def finiteSum {M : Type _} [OfNat M 0] [Add M] :
     Nat → (Nat → M) → M
 

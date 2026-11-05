@@ -103,10 +103,9 @@ theorem divides_refl (a : Int) : a ∣ a := by
   exists 1
   rw [Int.mul_one]
 
-theorem divides_add (a b c : Int)
-    (hab : a ∣ b)
-    (hac : a ∣ c) :
-    a ∣ b + c := by
+theorem divides_add (a b c : Int):
+    a ∣ b → a ∣ c → a ∣ b + c := by
+  intro hab hac
   unpack hab with ⟨k, hk⟩
   unpack hac with ⟨l, hl⟩
 
@@ -116,10 +115,9 @@ theorem divides_add (a b c : Int)
     b + c = a * k + a * l := by rw [hk, hl]
     _ = a * (k + l) := by rw [Int.mul_add]
 
-theorem divides_trans (a b c : Int)
-    (hab : a ∣ b)
-    (hbc : b ∣ c) :
-    a ∣ c := by
+theorem divides_trans (a b c : Int):
+    a ∣ b → b ∣ c → a ∣ c := by
+  intro hab hbc
   unpack hab with ⟨k, hk⟩
   unpack hbc with ⟨l, hl⟩
 
@@ -165,17 +163,16 @@ theorem congruent_refl (n a : Int) : a ≡ a [MOD n] := by
   exists 0
   rw [Int.mul_zero, Int.add_zero]
 
-theorem congruent_symm (n a b : Int)
-    (h : a ≡ b [MOD n]) :
-    b ≡ a [MOD n] := by
+theorem congruent_symm (n a b : Int):
+    a ≡ b [MOD n] → b ≡ a [MOD n] := by
+  intro h
   unpack h with ⟨k, hk⟩
   exists (-k)
   rw [hk, Int.mul_neg, Int.add_neg_cancel_right]
 
-theorem congruent_trans (n a b c : Int)
-    (hab : a ≡ b [MOD n])
-    (hbc : b ≡ c [MOD n]) :
-    a ≡ c [MOD n] := by
+theorem congruent_trans (n a b c : Int):
+    a ≡ b [MOD n] → b ≡ c [MOD n] → a ≡ c [MOD n] := by
+  intro hab hbc
   unpack hab with ⟨k, hk⟩
   unpack hbc with ⟨l, hl⟩
   exists (l + k)
@@ -300,7 +297,7 @@ attribute [ample_arith_prepare] congruent_dvd_sub congruent_emod_eq congruent_su
   congruent_of_dvd_sub divides_dvd Int.emod_eq_zero_of_dvd
 
 @[ample_rewrite] theorem congruent_rewriteLaws (n : Int) :
-    Rewriting.Laws (Congruent n) :=
+    IsEquivalence (Congruent n) :=
   ⟨congruent_refl n,
     fun h => congruent_symm n _ _ h,
     fun h k => congruent_trans n _ _ _ h k⟩

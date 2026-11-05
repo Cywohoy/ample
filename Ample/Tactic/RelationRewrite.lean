@@ -1,3 +1,4 @@
+import Ample.Logic.Relation
 import Ample.Tactic.Rules
 import Lean.Elab.Tactic.Rewrite
 import Lean.Meta.Tactic.Assumption
@@ -10,32 +11,14 @@ Mathematical modules register laws/actions with `ample_rewrite`.
 
 namespace Ample.Rewriting
 
-structure Laws {α : Type u} (R : α → α → Prop) : Prop where
-  refl : ∀ a, R a a
-  symm : ∀ {a b}, R a b → R b a
-  trans : ∀ {a b c}, R a b → R b c → R a c
-
-structure SymmetricTransitive {α : Type u} (R : α → α → Prop) : Prop where
-  symm : ∀ {a b}, R a b → R b a
-  trans : ∀ {a b c}, R a b → R b c → R a c
-
-structure Action {α : Type u} {β : Type v}
-    (R : α → α → Prop) (S : β → β → Prop) (f : α → β) : Prop where
-  map : ∀ {a b}, R a b → S (f a) (f b)
-
-structure Action2 {α : Type u} {β : Type v} {γ : Type w}
-    (R : α → α → Prop) (S : β → β → Prop)
-    (T : γ → γ → Prop) (f : α → β → γ) : Prop where
-  map : ∀ {a b c d}, R a b → S c d → T (f a c) (f b d)
-
-@[ample_rewrite] theorem iffLaws : Laws Iff :=
+@[ample_rewrite] theorem iffLaws : IsEquivalence Iff :=
   ⟨Iff.refl, Iff.symm, Iff.trans⟩
 
-@[ample_rewrite] theorem eqLaws (α : Type u) : Laws (@Eq α) :=
+@[ample_rewrite] theorem eqLaws (α : Type u) : IsEquivalence (@Eq α) :=
   ⟨Eq.refl, Eq.symm, Eq.trans⟩
 
 @[ample_rewrite] theorem relationAction {α : Type u}
-    (R : α → α → Prop) (laws : Laws R) : Action2 R R Iff R := by
+    (R : α → α → Prop) (laws : IsEquivalence R) : Action2 R R Iff R := by
   constructor
   intro a b c d hab hcd
   constructor
@@ -45,7 +28,7 @@ structure Action2 {α : Type u} {β : Type v} {γ : Type w}
     exact laws.trans (laws.trans hab hbd) (laws.symm hcd)
 
 @[ample_rewrite] theorem symmetricTransitiveOfLaws {α : Type u}
-    (R : α → α → Prop) (laws : Laws R) : SymmetricTransitive R :=
+    (R : α → α → Prop) (laws : IsEquivalence R) : SymmetricTransitive R :=
   ⟨laws.symm, laws.trans⟩
 
 @[ample_rewrite] theorem symmetricTransitiveOfProofs {α : Type u}
@@ -107,7 +90,7 @@ register_option ample.rewrite.maxSteps : Nat := {
 }
 
 private def certificateKind (type : Expr) : Bool :=
-  type.isAppOf ``Rewriting.Laws || type.isAppOf ``Rewriting.Action || type.isAppOf ``Rewriting.Action2
+  type.isAppOf ``Ample.IsEquivalence || type.isAppOf ``Rewriting.Action || type.isAppOf ``Rewriting.Action2
     || type.isAppOf ``Rewriting.SymmetricTransitive
 
 private def assumption? (type : Expr) : MetaM (Option Expr) := do
@@ -165,7 +148,7 @@ private partial def certificates (type : Expr) (depth : Nat)
               | none =>
                 valid := false
                 break
-            else if type.isAppOf ``Rewriting.Laws || type.isAppOf ``Rewriting.SymmetricTransitive then
+            else if type.isAppOf ``Ample.IsEquivalence || type.isAppOf ``Rewriting.SymmetricTransitive then
               -- Establish relation laws from known proofs, rather than inventing
               -- obligations such as reflexivity/symmetry of an arbitrary function.
               valid := false
@@ -222,9 +205,9 @@ private partial def proveComparison (goal : MVarId) (depth : Nat)
     return ← proveComparison next (depth - 1) budget source missing
   let some (R, left, right) ← comparison target | return none
   if ← isDefEq left right then
-    let lawsType ← mkAppM ``Rewriting.Laws #[R]
+    let lawsType ← mkAppM ``Ample.IsEquivalence #[R]
     if let some (laws, extra) ← certificate lawsType depth budget then
-      goal.assign (← mkAppM ``Rewriting.Laws.refl #[laws, left])
+      goal.assign (← mkAppM ``Ample.IsEquivalence.refl #[laws, left])
       return some extra
   if R.isConstOf ``Iff && left.isForall && right.isForall then
     let saved ← saveState

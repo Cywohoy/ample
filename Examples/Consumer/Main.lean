@@ -22,10 +22,10 @@ theorem equality_from_another_project (a b : Nat) (h : a = b) : a + 1 = b + 1 :=
 theorem arithmetic_from_another_project (n : Nat) : n + 1 > n := by
   arith
 
-theorem quotient_from_another_project {A : Type} (R : Relation A) :
+theorem quotient_from_another_project {A : Type} (R : Relation A) [IsEquivalence R] :
     (A / R) = QuotientType R := rfl
 
-def quotient_element_from_another_project {A : Type} (R : Relation A) (a : A) :
+def quotient_element_from_another_project {A : Type} (R : Relation A) [IsEquivalence R] (a : A) :
     A / R := ⟦a⟧
 
 theorem group_from_another_project {A : Type} (G : Group A) (a : A) :

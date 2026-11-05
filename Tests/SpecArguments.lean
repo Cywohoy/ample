@@ -25,23 +25,24 @@ example : ∀ x, inverseMap f hf (f x) = x := by
 end Inverse
 
 section Representatives
-variable {A : Type _} (R : Relation A) (q : QuotientType R)
+variable {A : Type _} (R : Relation A) [IsEquivalence R] (q : QuotientType R)
 
-example : q = classOf R (quotientRepr R q) := by
-  exact quotientRepr_spec q
+example : ∃ a, q = classOf R a := by
+  exact quotient_exists_classOf R q
 example (P : QuotientType R → Prop)
-    (h : P (classOf R (quotientRepr R q))) : P q := by
-  rw [quotientRepr_spec q]
-  exact h
+    (h : ∀ a, P (classOf R a)) : P q := by
+  unpack quotient_exists_classOf R q with ⟨a, ha⟩
+  rw [ha]
+  exact h a
 end Representatives
 
 section Lift
-variable {A B : Type _} (R : Relation A) (hR : IsEquivalence R)
+variable {A B : Type _} (R : Relation A) [hR : IsEquivalence R]
   (f : A → B) (hf : ∀ a b, R a b → f a = f b) (a : A)
 
-example : quotientLift R hR f hf (classOf R a) = f a := by
+example : quotientLift R f hf (classOf R a) = f a := by
   exact quotientLift_classOf
-example : quotientLift R hR f hf (classOf R a) = f a := by
+example : quotientLift R f hf (classOf R a) = f a := by
   rw [quotientLift_classOf]
 end Lift
 

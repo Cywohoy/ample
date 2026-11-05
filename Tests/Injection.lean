@@ -2,6 +2,21 @@ import Ample.Tactic.Injection
 
 set_option linter.unusedVariables false
 
+namespace DependentStructureInjection
+structure Sample where
+  size : Nat
+  value : Fin size
+
+-- Only size has the same type on both sides before any rewriting.
+-- The dependent value field would require heterogeneous equality.
+open scoped Ample in
+example (s t : Sample) (h : s = t) : True := by
+  injection h with hs
+  guard_hyp h : s = t
+  guard_hyp hs : s.size = t.size
+  trivial
+end DependentStructureInjection
+
 -- 범위를 열지 않은 곳에서는 Lean의 기본 전술을 사용한다.
 example (a b c d : Nat) (h : (a, b) = (c, d)) : True := by
   injection h with ha hb

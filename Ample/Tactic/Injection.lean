@@ -3,7 +3,7 @@ import Lean.Meta.Tactic.Assert
 
 /-!
 Add component equalities while retaining the original equality and intermediate steps.
-Pairs, Fin values, and subtypes can be compared even when given as variables.
+Structure value fields can be compared even when given as variables.
 Other constructors use Lean's native injection machinery.
 -/
 
@@ -43,17 +43,30 @@ private def projectEquality (type : Expr) (proof : Expr) (projection : Name) :
     let right ← calculate rhs
     return (result, ← mkEq left right)
 
+-- Homogeneous congruence requires a result type independent of the input.
+-- Proof fields and genuinely dependent data fields are left to native injection.
+private def valueProjections (α : Expr) : MetaM (List Name) := do
+  let α ← whnf α
+  let .const name _ := α.getAppFn | return []
+  let some info := getStructureInfo? (← getEnv) name
+    | return []
+  withLocalDeclD `x α fun x => do
+    let mut projections := []
+    for field in info.fieldNames do
+      let some fieldInfo := getFieldInfo? (← getEnv) info.structName field
+        | continue
+      let value ← mkAppM fieldInfo.projFn #[x]
+      let type ← instantiateMVars (← inferType value)
+      unless (← isProp type) || type.containsFVar x.fvarId! do
+        projections := projections ++ [fieldInfo.projFn]
+    return projections
+
 def retainedInjection (goal : MVarId) (hyp : FVarId) (names : List Name := [])
     (deduplicate := false) : MetaM RetainedInjectionResult := goal.withContext do
   let decl ← hyp.getDecl
   let type ← whnf (← instantiateMVars decl.type)
   let projections ← match type.eq? with
-    | some (α, _, _) => do
-      let α ← whnf α
-      if α.isAppOfArity ``Prod 2 then pure [``Prod.fst, ``Prod.snd]
-      else if α.isAppOfArity ``Fin 1 then pure [``Fin.val]
-      else if α.isAppOfArity ``Subtype 2 then pure [``Subtype.val]
-      else pure []
+    | some (α, _, _) => valueProjections α
     | none => pure []
   if !projections.isEmpty then
     let mut current := goal

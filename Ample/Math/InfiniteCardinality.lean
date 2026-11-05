@@ -13,9 +13,10 @@ def CardinalityLT : Type → Type → Prop :=
 
 theorem cardinalityLE_transport {A B : Type} {A' B' : Type}
     (hA : SameCardinality A A')
-    (hB : SameCardinality B B')
-    (h : CardinalityLE A B) :
+    (hB : SameCardinality B B') :
+    CardinalityLE A B →
     CardinalityLE A' B' := by
+  intro h
   unpack hA with ⟨a, ha⟩
   unpack hB with ⟨b, hb⟩
   unpack h with ⟨f, hf⟩
@@ -48,15 +49,16 @@ theorem cardinal_le_iff (A B : Type) :
     unpack h with ⟨A', hRemaining⟩
     unpack hRemaining with ⟨B', hConditions⟩
     rcases hConditions with ⟨hA, ⟨hB, hf⟩⟩
-    exact cardinalityLE_transport hA hB hf
+    apply cardinalityLE_transport hA hB
+    exact hf
 
   · intro hf
-    exists A, B
+    exists A
+    exists B
     and_intros
     · exact sameCardinality_refl A
     · exact sameCardinality_refl B
     · exact hf
-
 theorem cardinal_lt_iff (a b : Cardinal) :
     a < b ↔ a ≤ b ∧ a ≠ b := by
   rfl
@@ -67,10 +69,11 @@ theorem cardinal_le_refl (A : Type) :
   exists identity A
   exact identity_injective A
 
-theorem cardinal_le_trans {A B C : Type}
-    (hAB : cardinal A ≤ cardinal B)
-    (hBC : cardinal B ≤ cardinal C) :
+theorem cardinal_le_trans {A B C : Type} :
+    cardinal A ≤ cardinal B →
+    cardinal B ≤ cardinal C →
     cardinal A ≤ cardinal C := by
+  intro hAB hBC
   unpack (cardinal_le_iff A B).mp hAB with ⟨f, hf⟩
   unpack (cardinal_le_iff B C).mp hBC with ⟨g, hg⟩
 
@@ -117,8 +120,7 @@ theorem toPositive_bijective : Bijective toPositive := by
 
     exists (y.val - 1)
     ext
-    dsimp [toPositive]
-    have hy :=
+    have hy : y.val ∈ positives :=
       y.property
 
     arith
@@ -126,11 +128,14 @@ theorem toPositive_bijective : Bijective toPositive := by
 def IsCountablyInfinite : Type → Prop :=
   fun A => cardinal Nat = cardinal A
 
-theorem countablyInfinite_isInfinite {A : Type}
-    (hA : IsCountablyInfinite A) :
+theorem countablyInfinite_isInfinite {A : Type} :
+    IsCountablyInfinite A →
     IsInfinite A := by
+  intro hA
   unpack (cardinal_eq_iff Nat A).mp hA with ⟨f, hf⟩
-  exact infinite_of_nat_injection f hf.inj
+  apply infinite_of_exists_nat_injection
+  exists f
+  exact hf.inj
 
 theorem positives_countablyInfinite :
     IsCountablyInfinite (Elem positives) := by
@@ -153,7 +158,7 @@ example :
     ← positives_countablyInfinite]
 
 def FiniteListing (A : Type) (n : Nat) :=
-  {f : Fin n → A // Injective f}
+  Elem (fun f : Fin n → A => Injective f)
 
 attribute [implicit_reducible] FiniteListing
 
@@ -213,8 +218,8 @@ include extend
 noncomputable def nextListingData {A : Type}
     (hA : IsInfinite A)
     (n : Nat) (s : FiniteListing A n) :
-    {t : FiniteListing A (n + 1) //
-      ∀ i : Fin n, t.val i.castSucc = s.val i} :=
+    Elem (fun t : FiniteListing A (n + 1) =>
+      ∀ i : Fin n, t.val i.castSucc = s.val i) :=
   { val := Classical.choose (extend hA s)
     property := Classical.choose_spec (extend hA s) }
 
@@ -355,9 +360,10 @@ theorem cardinality_le_powerSet (A : Type) :
     CardinalityLE A (Set A) := by
   exact (cardinal_le_iff A (Set A)).mp (cardinal_le_powerSet A)
 
-theorem cantor_not_surjective {A : Type} (f : A → Set A) :
-    ¬ Surjective f := by
-  intro hf
+theorem cantor_not_surjective (A : Type) :
+    ¬ ∃ f : A → Set A, Surjective f := by
+  intro h
+  unpack h with ⟨f, hf⟩
   let D : Set A := fun x => x ∉ f x
   unpack hf D with ⟨a, ha⟩
 
@@ -393,13 +399,17 @@ theorem initialSegment_diagonal :
     arith
 
 example : ¬ Surjective initialSegment := by
-  exact cantor_not_surjective initialSegment
+  intro h
+  apply cantor_not_surjective Nat
+  exists initialSegment
 
 theorem powerSet_not_sameCardinality (A : Type) :
     ¬ SameCardinality A (Set A) := by
   intro h
   unpack h with ⟨f, hf⟩
-  exact cantor_not_surjective f hf.surj
+  apply cantor_not_surjective A
+  exists f
+  exact hf.surj
 
 theorem cardinality_lt_powerSet (A : Type) :
     CardinalityLT A (Set A) := by
@@ -433,10 +443,11 @@ attribute [ample_card_rules]
   countablyInfinite_isInfinite positives_countablyInfinite
   cardinal_le_powerSet cardinal_ne_powerSet cardinal_lt_powerSet
 
-theorem infinite_card_comparison {A B C : Type}
-    (hAB : cardinal A ≤ cardinal B)
-    (hBC : cardinal B ≤ cardinal C) :
+theorem infinite_card_comparison {A B C : Type} :
+    cardinal A ≤ cardinal B →
+    cardinal B ≤ cardinal C →
     cardinal A ≤ cardinal C := by
+  intro hAB hBC
   card
 
 end Ample

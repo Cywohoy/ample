@@ -7,14 +7,17 @@ open scoped Classical
 namespace Ample
 
 theorem fin_injective_surjective (n : Nat)
-    (f : Fin n → Fin n)
-    (hf : Injective f) : Surjective f := by
+    (f : Fin n → Fin n) :
+    Injective f →
+    Surjective f := by
+  intro hf
   intro r
   by_contra hmissing
   cases n with
   | zero => exact Fin.elim0 r
   | succ n =>
-    have hne (x : Fin (n + 1)) : (f x).val ≠ r.val := by
+    have hne : ∀ x : Fin (n + 1), (f x).val ≠ r.val := by
+      intro x
       intro hval
       apply hmissing
       exists x
@@ -38,9 +41,12 @@ theorem fin_injective_surjective (n : Nat)
     arith
 
 theorem finite_injective_surjective {A B : Type} (f : A → B)
-    (hA : IsFinite A)
-    (hAB : cardinal A = cardinal B)
-    (hf : Injective f) : Surjective f := by
+    (hA : IsFinite A) :
+    cardinal A = cardinal B →
+    Injective f →
+    Surjective f := by
+  intro hAB
+  intro hf
   unpack hA with ⟨n, hn⟩
   have hBn : cardinal B = cardinal (Fin n) := by
     rw [← hAB]
@@ -61,26 +67,75 @@ theorem finite_injective_surjective {A B : Type} (f : A → B)
   apply hb.inj
   exact hi
 
+theorem fin_choice {A : Type} (n : Nat)
+    (P : Fin n → A → Prop) :
+    (∀ i, ∃ a, P i a) →
+    ∃ g : Fin n → A, ∀ i, P i (g i) := by
+  induction n with
+  | zero =>
+    intro h
+    exists (fun i => Fin.elim0 i)
+    intro i
+    exact Fin.elim0 i
+
+  | succ n ih =>
+    intro h
+
+    unpack h 0 with ⟨a, ha⟩
+    have ht : ∀ i : Fin n, ∃ a, P i.succ a := by
+      intro i
+      exact h i.succ
+
+    unpack ih (fun i a => P i.succ a) ht with ⟨g, hg⟩
+
+    exists Fin.cases a g
+    intro i
+    exact Fin.cases ha hg i
+
 theorem finite_surjective_injective {A B : Type} (f : A → B)
-    (hA : IsFinite A)
-    (hAB : cardinal A = cardinal B)
-    (hf : Surjective f) : Injective f := by
-  let g : B → A := fun y => Classical.choose (hf y)
-  have hfg (y : B) : f (g y) = y := by
-    exact Classical.choose_spec (hf y)
+    (hA : IsFinite A) :
+    cardinal A = cardinal B →
+    Surjective f →
+    Injective f := by
+  intro hAB
+  intro hf
+
+  unpack hA with ⟨n, hn⟩
+  have hBn : cardinal B = cardinal (Fin n) := by
+    rw [← hAB]
+    exact hn
+
+  unpack (cardinal_eq_iff B (Fin n)).mp hBn with ⟨b, hb⟩
+  have hpre : ∀ i : Fin n,
+      ∃ x : A, f x = inverseMap b hb i := by
+    intro i
+    exact hf (inverseMap b hb i)
+
+  unpack fin_choice n
+    (fun i x => f x = inverseMap b hb i) hpre
+    with ⟨g0, hg0⟩
+  let g (y : B) : A := g0 (b y)
+  have hfg : ∀ y : B, f (g y) = y := by
+    intro y
+    expand
+    rw [hg0, inverseMap_left b]
+
+
   have hg : Injective g := by
     intro x y hxy
-    have h : f (g x) = f (g y) := by rw [hxy]
-    rw [hfg, hfg] at h
-    exact h
+    apply_fun f at hxy
+    rw [hfg, hfg] at hxy
+    exact hxy
+
 
   have hgSurj : Surjective g := by
     apply finite_injective_surjective g
-    · apply isFinite_transport hAB hA
+    · exists n
     · symm
       exact hAB
 
     · exact hg
+
 
   intro x y hxy
   unpack hgSurj x with ⟨u, hu⟩
@@ -90,9 +145,10 @@ theorem finite_surjective_injective {A B : Type} (f : A → B)
 
 theorem finite_injective_iff_surjective {A B : Type}
     (f : A → B)
-    (hA : IsFinite A)
-    (hAB : cardinal A = cardinal B) :
-    Injective f ↔ Surjective f := by
+    (hA : IsFinite A) :
+    cardinal A = cardinal B →
+    (Injective f ↔ Surjective f) := by
+  intro hAB
   constructor
   · apply finite_injective_surjective f hA hAB
   · apply finite_surjective_injective f hA hAB
@@ -151,64 +207,90 @@ theorem sameCardinality_arrow {A B C D : Type}
 
 namespace Cardinal
 
-noncomputable def binaryData (F : Type → Type → Type)
-    (hF : ∀ {A B C D},
-      SameCardinality A C → SameCardinality B D →
-        SameCardinality (F A B) (F C D)) :
-    { op : Cardinal → Cardinal → Cardinal //
-      ∀ A B, op (cardinal A) (cardinal B) =
-        cardinal (F A B) } :=
-  { val := fun a b => cardinal
-      (F (quotientRepr SameCardinality a)
-        (quotientRepr SameCardinality b))
-    property := by
-      intro A B
-      apply cardinal_eq_of_sameCardinality
-      apply hF
-      · apply sameCardinality_of_cardinal_eq
-        symm
-        exact quotientRepr_spec (cardinal A)
+noncomputable def addToType (A : Type) :
+    Cardinal → Cardinal :=
+  quotientLift
+    SameCardinality
+    (fun B : Type => cardinal (A ⊕ B))
+    (by
+      intro B D hBD
+      ext
+      apply sameCardinality_sum
+      · exact sameCardinality_refl A
+      · exact hBD)
 
-      · apply sameCardinality_of_cardinal_eq
-        symm
-        exact quotientRepr_spec (cardinal B) }
+theorem addToType_cardinal (A B : Type) :
+    addToType A (cardinal B) = cardinal (A ⊕ B) := by
+  exact quotientLift_classOf
+
+theorem addToType_respects (A C : Type) :
+    SameCardinality A C → addToType A = addToType C := by
+  intro hAC
+  apply quotient_funext SameCardinality
+  intro B
+
+  rw [addToType, quotientLift_classOf,
+    addToType, quotientLift_classOf]
+  ext
+  apply sameCardinality_sum
+  · exact hAC
+  · exact sameCardinality_refl B
+
+noncomputable def add : Cardinal → Cardinal → Cardinal :=
+  quotientLift
+    SameCardinality
+    addToType
+    addToType_respects
+
+noncomputable instance : Add Cardinal where
+  add := add
 
 end Cardinal
 
 namespace Cardinal
 
-noncomputable def add : Cardinal → Cardinal → Cardinal :=
-  (binaryData Sum sameCardinality_sum).val
-
 noncomputable def mul : Cardinal → Cardinal → Cardinal :=
-  (binaryData Prod sameCardinality_product).val
+  quotientLift₂
+    SameCardinality SameCardinality
+    (fun A B : Type => cardinal (A × B))
+    (by
+      intro A C B D hAC hBD
+      apply cardinal_eq_of_sameCardinality
+      apply sameCardinality_product hAC hBD)
+
+noncomputable instance : Mul Cardinal where
+  mul := mul
 
 noncomputable def power : Cardinal → Cardinal → Cardinal :=
-  (binaryData (fun B A => A → B)
-    (fun hB hA => sameCardinality_arrow hA hB)).val
+  quotientLift₂
+    SameCardinality SameCardinality
+    (fun B A : Type => cardinal (A → B))
+    (by
+      intro B D A C hBD hAC
+      apply cardinal_eq_of_sameCardinality
+      apply sameCardinality_arrow hAC hBD)
 
-noncomputable instance : Add Cardinal := ⟨add⟩
-noncomputable instance : Mul Cardinal := ⟨mul⟩
-noncomputable instance : Pow Cardinal Cardinal := ⟨power⟩
+noncomputable instance : Pow Cardinal Cardinal where
+  pow := power
+
 end Cardinal
 
 theorem cardinal_sum (A B : Type) :
     cardinal (A ⊕ B) = cardinal A + cardinal B := by
   symm
-  exact (Cardinal.binaryData Sum
-    sameCardinality_sum).property A B
+  expand
+  rw [cardinal, quotientLift_classOf]
+  exact Cardinal.addToType_cardinal A B
 
 theorem cardinal_product (A B : Type) :
     cardinal (A × B) = cardinal A * cardinal B := by
   symm
-  exact (Cardinal.binaryData Prod
-    sameCardinality_product).property A B
+  exact quotientLift₂_classOf
 
 theorem cardinal_arrow (A B : Type) :
     cardinal (A → B) = cardinal B ^ cardinal A := by
   symm
-  exact (Cardinal.binaryData (fun B A => A → B)
-    (fun hB hA => sameCardinality_arrow hA hB)).property B A
+  exact quotientLift₂_classOf
 
 def distribute {A B C : Type} :
     A × (B ⊕ C) → (A × B) ⊕ (A × C)
@@ -478,8 +560,12 @@ theorem characteristic_trueSet {A : Type} (f : A → Bool) :
   | true => simp [characteristic, trueSet, hx]
 
 theorem bool_cardinal : cardinal Bool = 2 := by
-  apply cardinal_eq_of_sameCardinality
-  exists fun b => if b then (1 : Fin 2) else 0
+  ext
+  let zero : Fin 2 :=
+    { val := 0, isLt := by decide }
+  let one : Fin 2 :=
+    { val := 1, isLt := by decide }
+  exists fun b => if b = true then one else zero
   apply bijective_of_inverse _
     (fun i => if i.val = 1 then true else false)
   · intro b
@@ -492,11 +578,11 @@ theorem bool_cardinal : cardinal Bool = 2 := by
     cases hi with
     | inl hi =>
         ext
-        simp [hi]
+        simp [hi, zero, one]
 
     | inr hi =>
         ext
-        simp [hi]
+        simp [hi, zero, one]
 
 theorem cardinal_set (A : Type) :
     cardinal (Set A) = (2 : Cardinal) ^ cardinal A := by
